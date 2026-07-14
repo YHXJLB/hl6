@@ -21,8 +21,15 @@ const routeQueries: Record<string, { queryKey: unknown[]; queryFn: () => Promise
     },
   ],
   "/admin/audit": [
-    { queryKey: ["audit-summary"], queryFn: () => api.adminGetAuditSummary().then((r) => r.data) },
-    { queryKey: ["admin-audit-cases", 1, "", "", "", "", "all"], queryFn: () => api.adminListAuditCases(1, 20, { status: "active,suspended" }).then((r) => r.data) },
+    { queryKey: ["admin-audit-summary"], queryFn: () => api.adminGetAuditSummary().then((r) => r.data) },
+    {
+      queryKey: ["admin-audit-cases", 1, "", "", "", "", "all"],
+      queryFn: () =>
+        api.adminListAuditCases(1, 20, { status: "active,suspended" }).then((r) => ({
+          items: r.data,
+          total: r.total,
+        })),
+    },
   ],
 };
 
