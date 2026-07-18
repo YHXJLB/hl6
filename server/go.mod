@@ -3,7 +3,7 @@ module hl6-server
 go 1.25.8
 
 require (
-	github.com/alibabacloud-go/alidns-20150109/v5 v5.5.0
+	github.com/alibabacloud-go/alidns-20150109/v5 v5.6.0
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.2.4
 	github.com/aws/aws-sdk-go-v2 v1.42.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.30
