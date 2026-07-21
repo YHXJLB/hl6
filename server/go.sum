@@ -265,6 +265,8 @@ github.com/baidubce/bce-sdk-go v0.9.270 h1:WAYDTBdrE2FU+XQVdKReuDuK9QVCjRdekK3lr
 github.com/baidubce/bce-sdk-go v0.9.270/go.mod h1:zbYJMQwE4IZuyrJiFO8tO8NbtYiKTFTbwh4eIsqjVdg=
 github.com/baidubce/bce-sdk-go v0.9.271 h1:HpFiq69yFvCo6PFOAixAl6OiWivZ2P2uryV7kDOe0+Y=
 github.com/baidubce/bce-sdk-go v0.9.271/go.mod h1:zbYJMQwE4IZuyrJiFO8tO8NbtYiKTFTbwh4eIsqjVdg=
+github.com/baidubce/bce-sdk-go v0.9.272 h1:xllMai0YXpfjNNa2NpscscxMDwtI0NumwSPa9OTBbhs=
+github.com/baidubce/bce-sdk-go v0.9.272/go.mod h1:zbYJMQwE4IZuyrJiFO8tO8NbtYiKTFTbwh4eIsqjVdg=
 github.com/bytedance/gopkg v0.1.3 h1:TPBSwH8RsouGCBcMBktLt1AymVo2TVsBVCY4b6TnZ/M=
 github.com/bytedance/gopkg v0.1.3/go.mod h1:576VvJ+eJgyCzdjS+c4+77QF3p7ubbtiKARP3TxducM=
 github.com/bytedance/sonic v1.14.0 h1:/OfKt8HFw0kh2rj8N0F6C/qPGRESq0BbaNZgcNXXzQQ=
