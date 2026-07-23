@@ -208,3 +208,9 @@ Task: "T023 其余语言 i18n 键"
 
 - [X] T035 修复 `server/internal/repository/redeem_code.go` 中 `RedeemCodeForUser`：按 `code_normalized` 查找时优先锁定「生效中」记录（上架、未过期、未用尽），避免非生效码字符串复用后兑换落到旧行导致误失败；若无生效行再统一返回不可用 per FR-021 (partial)
 - [X] T036 管理端兑换记录奖励摘要补齐目标用户组展示：在 `AdminListRedemptions`/`web/src/pages/admin/redeem-codes.tsx` 中展示 `target_group_id` 或组名（而非仅 group_changed），满足「积分数额或目标用户组」摘要 per FR-030 / US3/AC6 (partial)
+
+## Phase 9: Convergence
+
+- [X] T037 在 `server/internal/handler/redeem_code.go` 的 `AdminRelist` 中，上架前按 `code_normalized` 做「生效中」唯一性冲突检测（排除自身 id；过期清 `expires_at` 后亦适用）；冲突返回 `409` + `error.redeemCodeConflict`，防止非生效串被复用后重新上架导致双生效 per FR-020 (missing)
+- [X] T038 将 `AdminCreate` 中 `CountActiveConflict` 与 `CreateRedeemCode` 置于同一事务/锁边界（或等价强一致手段），避免并发同串创建双双通过检查；冲突仍返回 `409` + `error.redeemCodeConflict` per FR-020 (partial)
+- [X] T039 管理端拒绝非法自定义码时提示字符规则（允许中文、英文、数字）：更新 `error.redeemCodeInvalidFormat`（及/或 `web/src/pages/admin/redeem-codes.tsx` 提交前校验与表单 hint），满足 US2/AC7 提示要求 per US2/AC7 (partial)

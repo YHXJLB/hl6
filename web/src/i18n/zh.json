@@ -751,7 +751,7 @@
     "redeemCodeConflict": "兑换码与当前生效中的码冲突",
     "redeemCodeInvalidReward": "奖励配置无效",
     "redeemCodeInvalidAudience": "受众配置无效",
-    "redeemCodeInvalidFormat": "兑换码格式无效",
+    "redeemCodeInvalidFormat": "兑换码格式无效：仅允许中文、英文和数字",
     "redeemCodeNotFound": "兑换码未找到"
   },
   "dnsProviders": {
@@ -1089,6 +1089,7 @@
     "delisted": "已下架",
     "relisted": "已重新上架",
     "code": "兑换码",
+    "codeHint": "仅允许中文、英文、数字，禁止特殊字符",
     "rewardType": "奖励类型",
     "rewardCredits": "积分",
     "rewardGroup": "用户组",

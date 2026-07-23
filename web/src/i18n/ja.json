@@ -751,7 +751,7 @@
     "redeemCodeConflict": "Redeem code conflicts with an active code",
     "redeemCodeInvalidReward": "Invalid reward configuration",
     "redeemCodeInvalidAudience": "Invalid audience configuration",
-    "redeemCodeInvalidFormat": "Invalid redeem code format",
+    "redeemCodeInvalidFormat": "兌換コード形式が無効です：中国語・英字・数字のみ",
     "redeemCodeNotFound": "Redeem code not found"
   },
   "dnsProviders": {
@@ -1089,6 +1089,7 @@
     "delisted": "Delisted",
     "relisted": "Relisted",
     "code": "Code",
+    "codeHint": "中国語・英字・数字のみ。特殊文字は不可",
     "rewardType": "Reward type",
     "rewardCredits": "Credits",
     "rewardGroup": "User group",

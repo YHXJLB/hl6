@@ -45,8 +45,17 @@ import {
   useAdminRelistRedeemCode,
 } from "@/hooks/use-redeem-codes";
 import type { RedeemAudienceType, RedeemCode, RedeemRewardType } from "@/types";
+import { toast } from "sonner";
 
 const MAX_CREDIT_AMOUNT = 100000;
+const REDEEM_CODE_MAX_LEN = 64;
+
+/** 与后端 NormalizeRedeemCode 一致：仅 Unicode 字母/数字，无空白与特殊字符 */
+function isValidRedeemCodeInput(raw: string): boolean {
+  const s = raw.trim();
+  if (!s || [...s].length > REDEEM_CODE_MAX_LEN) return false;
+  return /^[\p{L}\p{N}]+$/u.test(s);
+}
 
 function parseCreditInput(raw: string): number | null {
   const trimmed = raw.trim();
@@ -193,6 +202,10 @@ export function RedeemCodesContent() {
   const handleCreate = async () => {
     const reward = buildRewardPayload();
     if (!reward || !code.trim() || !canSubmitAudience) return;
+    if (!isValidRedeemCodeInput(code)) {
+      toast.error(t("error.redeemCodeInvalidFormat"));
+      return;
+    }
     const mpu = parseOptionalInt(maxPerUser);
     const mt = parseOptionalInt(maxTotal);
     if (mpu === undefined || mt === undefined) return;
@@ -448,6 +461,7 @@ export function RedeemCodesContent() {
                       className="font-mono tracking-wider"
                       placeholder="TEST10"
                     />
+                    <p className="text-xs text-muted-foreground">{t("adminRedeemCodes.codeHint")}</p>
                   </div>
                   {rewardForm}
                   {audienceForm}

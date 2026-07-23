@@ -3,6 +3,7 @@ package repository
 import (
 	"crypto/rand"
 	"errors"
+	"hash/fnv"
 	"math/big"
 	"time"
 
@@ -32,6 +33,23 @@ func (r *Repository) CreateRedeemCode(code *model.RedeemCode) error {
 	return r.DB.Create(code).Error
 }
 
+// CreateRedeemCodeIfNoConflict 在事务内用 advisory lock 串行化同串创建，检查生效唯一性后插入。
+func (r *Repository) CreateRedeemCodeIfNoConflict(code *model.RedeemCode) error {
+	return r.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("SELECT pg_advisory_xact_lock(?)", redeemCodeLockKey(code.CodeNormalized)).Error; err != nil {
+			return err
+		}
+		conflict, err := countActiveConflict(tx, code.CodeNormalized, 0)
+		if err != nil {
+			return err
+		}
+		if conflict > 0 {
+			return ErrRedeemCodeConflict
+		}
+		return tx.Create(code).Error
+	})
+}
+
 func (r *Repository) CreateRedeemCodes(codes []model.RedeemCode) error {
 	if len(codes) == 0 {
 		return nil
@@ -51,17 +69,71 @@ func (r *Repository) FindRedeemCodeByID(id uint) (*model.RedeemCode, error) {
 	return &code, err
 }
 
-// CountActiveConflict 统计「生效中」且归一化码相同的记录数。
-func (r *Repository) CountActiveConflict(normalized string) (int64, error) {
+// CountActiveConflict 统计「生效中」且归一化码相同的记录数；excludeID>0 时排除自身。
+func (r *Repository) CountActiveConflict(normalized string, excludeID uint) (int64, error) {
+	return countActiveConflict(r.DB, normalized, excludeID)
+}
+
+func countActiveConflict(db *gorm.DB, normalized string, excludeID uint) (int64, error) {
 	now := time.Now()
-	var count int64
-	err := r.DB.Model(&model.RedeemCode{}).
+	q := db.Model(&model.RedeemCode{}).
 		Where("code_normalized = ?", normalized).
 		Where("listed = ?", true).
 		Where("(expires_at IS NULL OR expires_at > ?)", now).
-		Where("(max_total IS NULL OR redeemed_count < max_total)").
-		Count(&count).Error
+		Where("(max_total IS NULL OR redeemed_count < max_total)")
+	if excludeID > 0 {
+		q = q.Where("id <> ?", excludeID)
+	}
+	var count int64
+	err := q.Count(&count).Error
 	return count, err
+}
+
+func redeemCodeLockKey(normalized string) int64 {
+	h := fnv.New64a()
+	_, _ = h.Write([]byte("redeem_code:"))
+	_, _ = h.Write([]byte(normalized))
+	return int64(h.Sum64())
+}
+
+// RelistRedeemCode 重新上架；若上架后会进入「生效中」集合则校验唯一性（排除自身）。
+func (r *Repository) RelistRedeemCode(id uint) (*model.RedeemCode, error) {
+	err := r.Transaction(func(tx *gorm.DB) error {
+		code, err := r.LockRedeemCodeByID(tx, id)
+		if err != nil {
+			return err
+		}
+
+		now := time.Now()
+		clearExpires := code.ExpiresAt != nil && !code.ExpiresAt.After(now)
+		exhausted := code.MaxTotal != nil && code.RedeemedCount >= *code.MaxTotal
+
+		// 上架后若会进入生效集合，需保证归一化串唯一
+		if !exhausted {
+			if err := tx.Exec("SELECT pg_advisory_xact_lock(?)", redeemCodeLockKey(code.CodeNormalized)).Error; err != nil {
+				return err
+			}
+			conflict, err := countActiveConflict(tx, code.CodeNormalized, code.ID)
+			if err != nil {
+				return err
+			}
+			if conflict > 0 {
+				return ErrRedeemCodeConflict
+			}
+		}
+
+		updates := map[string]interface{}{
+			"listed": true,
+		}
+		if clearExpires {
+			updates["expires_at"] = nil
+		}
+		return tx.Model(&model.RedeemCode{}).Where("id = ?", id).Updates(updates).Error
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.FindRedeemCodeByID(id)
 }
 
 func (r *Repository) LockRedeemCodeByID(tx *gorm.DB, id uint) (*model.RedeemCode, error) {

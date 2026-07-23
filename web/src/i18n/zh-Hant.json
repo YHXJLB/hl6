@@ -751,7 +751,7 @@
     "redeemCodeConflict": "兌換碼與目前生效中的碼衝突",
     "redeemCodeInvalidReward": "獎勵設定無效",
     "redeemCodeInvalidAudience": "受眾設定無效",
-    "redeemCodeInvalidFormat": "兌換碼格式無效",
+    "redeemCodeInvalidFormat": "兌換碼格式無效：僅允許中文、英文和數字",
     "redeemCodeNotFound": "兌換碼未找到"
   },
   "dnsProviders": {
@@ -1089,6 +1089,7 @@
     "delisted": "已下架",
     "relisted": "已重新上架",
     "code": "兌換碼",
+    "codeHint": "僅允許中文、英文、數字，禁止特殊字元",
     "rewardType": "獎勵類型",
     "rewardCredits": "積分",
     "rewardGroup": "使用者群組",

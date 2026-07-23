@@ -751,7 +751,7 @@
     "redeemCodeConflict": "Redeem code conflicts with an active code",
     "redeemCodeInvalidReward": "Invalid reward configuration",
     "redeemCodeInvalidAudience": "Invalid audience configuration",
-    "redeemCodeInvalidFormat": "Invalid redeem code format",
+    "redeemCodeInvalidFormat": "Invalid redeem code format: only Chinese, letters, and digits allowed",
     "redeemCodeNotFound": "Redeem code not found"
   },
   "dnsProviders": {
@@ -1089,6 +1089,7 @@
     "delisted": "Delisted",
     "relisted": "Relisted",
     "code": "Code",
+    "codeHint": "Chinese, letters, and digits only; no special characters",
     "rewardType": "Reward type",
     "rewardCredits": "Credits",
     "rewardGroup": "User group",

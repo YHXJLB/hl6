@@ -262,16 +262,6 @@ func (h *RedeemCodeHandler) AdminCreate(c *gin.Context) {
 		return
 	}
 
-	conflict, err := h.repo.CountActiveConflict(normalized)
-	if err != nil {
-		response.ErrorWithKey(c, http.StatusInternalServerError, "database error", "error.databaseError")
-		return
-	}
-	if conflict > 0 {
-		response.Conflict(c, "error.redeemCodeConflict")
-		return
-	}
-
 	code := model.RedeemCode{
 		CodeNormalized: normalized,
 		CodeDisplay:    normalized,
@@ -287,7 +277,11 @@ func (h *RedeemCodeHandler) AdminCreate(c *gin.Context) {
 		Listed:         true,
 		CreatedBy:      admin.ID,
 	}
-	if err := h.repo.CreateRedeemCode(&code); err != nil {
+	if err := h.repo.CreateRedeemCodeIfNoConflict(&code); err != nil {
+		if errors.Is(err, repository.ErrRedeemCodeConflict) {
+			response.Conflict(c, "error.redeemCodeConflict")
+			return
+		}
 		response.ErrorWithKey(c, http.StatusInternalServerError, "failed to create redeem code", "error.databaseError")
 		return
 	}
@@ -441,25 +435,18 @@ func (h *RedeemCodeHandler) AdminRelist(c *gin.Context) {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid id", "error.invalidRequestBody")
 		return
 	}
-	code, err := h.repo.FindRedeemCodeByID(uint(id))
+	code, err := h.repo.RelistRedeemCode(uint(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.NotFound(c, "error.redeemCodeNotFound")
 			return
 		}
+		if errors.Is(err, repository.ErrRedeemCodeConflict) {
+			response.Conflict(c, "error.redeemCodeConflict")
+			return
+		}
 		response.ErrorWithKey(c, http.StatusInternalServerError, "database error", "error.databaseError")
 		return
-	}
-
-	now := time.Now()
-	clearExpires := code.ExpiresAt != nil && !code.ExpiresAt.After(now)
-	if err := h.repo.UpdateRedeemCodeListed(code.ID, true, clearExpires); err != nil {
-		response.ErrorWithKey(c, http.StatusInternalServerError, "database error", "error.databaseError")
-		return
-	}
-	code.Listed = true
-	if clearExpires {
-		code.ExpiresAt = nil
 	}
 	response.OK(c, redeemCodeView(code))
 }
