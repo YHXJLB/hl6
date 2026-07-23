@@ -162,7 +162,15 @@
     "dailyCheckinNow": "今すぐチェックイン",
     "dailyCheckingIn": "チェックイン中...",
     "dailyCheckinClaimed": "本日は受取済み",
-    "dailyCheckinSuccess": "チェックイン成功、{{amount}} クレジット獲得"
+    "dailyCheckinSuccess": "チェックイン成功、{{amount}} クレジット獲得",
+    "redeemTitle": "Redeem code",
+    "redeemDesc": "Enter a redeem code to claim credits or switch user group",
+    "redeemPlaceholder": "Enter code",
+    "redeemSubmit": "Redeem",
+    "redeeming": "Redeeming…",
+    "redeemSuccessCredits": "Redeemed successfully, gained {{amount}} credits",
+    "redeemSuccessGroup": "Redeemed successfully, switched to “{{group}}”",
+    "redeemSuccessGroupUnchanged": "Redeemed successfully (already in “{{group}}”)"
   },
   "claimDialog": {
     "title": "サブドメインを取得",
@@ -283,7 +291,8 @@
     "updatedAt": "更新日時",
     "bannedReason": "封禁理由",
     "bannedAt": "封禁日時",
-    "bannedBy": "封禁者 ID"
+    "bannedBy": "封禁者 ID",
+    "tabRedeemCodes": "交換コード"
   },
   "adminBrand": {
     "title": "ブランド設定",
@@ -533,7 +542,8 @@
     "subdomainDeletedDeduct": "管理者がドメインを削除、サブドメイン {{fqdn}} のボーナスクレジットを回収",
     "referralInviter": "{{name}} の招待報酬",
     "referralInvitee": "{{name}} からの招待報酬",
-    "dailyCheckin": "デイリーチェックイン報酬"
+    "dailyCheckin": "デイリーチェックイン報酬",
+    "redeemCode": "交換コード報酬"
   },
   "notifications": {
     "title": "通知",
@@ -736,7 +746,13 @@
     "dnsBulkJobQueuedBan": "DNS 一括ジョブをキューに追加しました（Job #{{jobID}}）。完了後に BAN を再試行してください。",
     "dnsBulkJobQueuedDelete": "DNS 一括ジョブをキューに追加しました（Job #{{jobID}}）。完了後に削除を再試行してください。",
     "dnsBulkJobQueuedRelease": "DNS 一括ジョブをキューに追加しました（Job #{{jobID}}）。完了後に解放を再試行してください。",
-    "dnsBulkJobQueuedOperation": "DNS 一括ジョブをキューに追加しました（Job #{{jobID}}）。完了後に操作を再試行してください。"
+    "dnsBulkJobQueuedOperation": "DNS 一括ジョブをキューに追加しました（Job #{{jobID}}）。完了後に操作を再試行してください。",
+    "redeemCodeUnavailable": "Redeem code is invalid or unavailable",
+    "redeemCodeConflict": "Redeem code conflicts with an active code",
+    "redeemCodeInvalidReward": "Invalid reward configuration",
+    "redeemCodeInvalidAudience": "Invalid audience configuration",
+    "redeemCodeInvalidFormat": "Invalid redeem code format",
+    "redeemCodeNotFound": "Redeem code not found"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1058,5 +1074,56 @@
       "intro": "サブドメイン {{fqdn}} が管理者により解放されました。",
       "reason": "理由：{{reason}}"
     }
+  },
+  "adminRedeemCodes": {
+    "title": "Redeem Codes",
+    "totalEntries": "{{count}} redeem codes",
+    "create": "Create code",
+    "createTitle": "Create redeem code",
+    "batchCreate": "Batch generate",
+    "batchCreateTitle": "Batch generate codes",
+    "batchCount": "Count",
+    "batchHint": "Each code is 5 English letters, max_total forced to 1; default 10, max 200",
+    "created": "Redeem code created",
+    "batchCreated": "Generated {{count}} redeem codes",
+    "delisted": "Delisted",
+    "relisted": "Relisted",
+    "code": "Code",
+    "rewardType": "Reward type",
+    "rewardCredits": "Credits",
+    "rewardGroup": "User group",
+    "creditAmount": "Credit amount",
+    "targetGroup": "Target group",
+    "selectGroup": "Select group",
+    "audienceType": "Audience",
+    "maxPerUser": "Per-user limit",
+    "maxTotal": "Total limit",
+    "unlimited": "Unlimited",
+    "expiresAt": "Expires at (optional)",
+    "searchPlaceholder": "Search codes…",
+    "filterAll": "All",
+    "filterListed": "Listed",
+    "filterDelisted": "Delisted",
+    "empty": "No redeem codes yet",
+    "colCode": "Code",
+    "colReward": "Reward",
+    "colAudience": "Audience",
+    "colUsage": "Redeemed",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "statusActive": "Redeemable",
+    "statusDelisted": "Delisted",
+    "statusExpired": "Expired",
+    "statusExhausted": "Exhausted",
+    "delist": "Delist",
+    "relist": "Relist",
+    "viewRedemptions": "Records",
+    "redemptionsTitle": "Redemptions · {{code}}",
+    "noRedemptions": "No successful redemptions yet",
+    "rewardCreditsValue": "{{amount}} credits",
+    "rewardGroupValue": "Group: {{group}}",
+    "redemptionGroup": "{{changed}}",
+    "groupChanged": "Group changed",
+    "groupUnchanged": "Already in target group"
   }
 }

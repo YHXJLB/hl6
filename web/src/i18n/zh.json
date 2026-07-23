@@ -162,7 +162,15 @@
     "dailyCheckinNow": "立即签到",
     "dailyCheckingIn": "签到中...",
     "dailyCheckinClaimed": "今日已签到",
-    "dailyCheckinSuccess": "签到成功，获得 {{amount}} 积分"
+    "dailyCheckinSuccess": "签到成功，获得 {{amount}} 积分",
+    "redeemTitle": "兑换码",
+    "redeemDesc": "输入兑换码领取积分或切换用户组",
+    "redeemPlaceholder": "输入兑换码",
+    "redeemSubmit": "兑换",
+    "redeeming": "兑换中…",
+    "redeemSuccessCredits": "兑换成功，获得 {{amount}} 积分",
+    "redeemSuccessGroup": "兑换成功，已切换到「{{group}}」",
+    "redeemSuccessGroupUnchanged": "兑换成功（已在「{{group}}」）"
   },
   "claimDialog": {
     "title": "申请子域名",
@@ -283,7 +291,8 @@
     "updatedAt": "更新时间",
     "bannedReason": "封禁原因",
     "bannedAt": "封禁时间",
-    "bannedBy": "封禁人 ID"
+    "bannedBy": "封禁人 ID",
+    "tabRedeemCodes": "兑换码"
   },
   "adminBrand": {
     "title": "品牌设置",
@@ -533,7 +542,8 @@
     "subdomainDeletedDeduct": "管理员删除域名，扣回子域名 {{fqdn}} 的奖励积分",
     "referralInviter": "邀请用户 {{name}} 注册奖励",
     "referralInvitee": "受 {{name}} 邀请注册奖励",
-    "dailyCheckin": "每日签到奖励"
+    "dailyCheckin": "每日签到奖励",
+    "redeemCode": "兑换码奖励"
   },
   "notifications": {
     "title": "通知",
@@ -736,7 +746,13 @@
     "dnsBulkJobQueuedBan": "DNS 批量任务已排队（Job #{{jobID}}），请等待完成后重试封禁",
     "dnsBulkJobQueuedDelete": "DNS 批量任务已排队（Job #{{jobID}}），请等待完成后重试删除",
     "dnsBulkJobQueuedRelease": "DNS 批量任务已排队（Job #{{jobID}}），请等待完成后重试释放",
-    "dnsBulkJobQueuedOperation": "DNS 批量任务已排队（Job #{{jobID}}），请等待完成后重试操作"
+    "dnsBulkJobQueuedOperation": "DNS 批量任务已排队（Job #{{jobID}}），请等待完成后重试操作",
+    "redeemCodeUnavailable": "兑换码无效或不可用",
+    "redeemCodeConflict": "兑换码与当前生效中的码冲突",
+    "redeemCodeInvalidReward": "奖励配置无效",
+    "redeemCodeInvalidAudience": "受众配置无效",
+    "redeemCodeInvalidFormat": "兑换码格式无效",
+    "redeemCodeNotFound": "兑换码未找到"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1058,5 +1074,56 @@
       "intro": "您的子域名 {{fqdn}} 已被管理员释放。",
       "reason": "原因：{{reason}}"
     }
+  },
+  "adminRedeemCodes": {
+    "title": "兑换码",
+    "totalEntries": "共 {{count}} 个兑换码",
+    "create": "创建兑换码",
+    "createTitle": "创建兑换码",
+    "batchCreate": "批量生成",
+    "batchCreateTitle": "批量生成兑换码",
+    "batchCount": "生成数量",
+    "batchHint": "每码 5 位英文，强制总次数为 1；默认 10，上限 200",
+    "created": "兑换码已创建",
+    "batchCreated": "已生成 {{count}} 个兑换码",
+    "delisted": "已下架",
+    "relisted": "已重新上架",
+    "code": "兑换码",
+    "rewardType": "奖励类型",
+    "rewardCredits": "积分",
+    "rewardGroup": "用户组",
+    "creditAmount": "积分数量",
+    "targetGroup": "目标用户组",
+    "selectGroup": "选择用户组",
+    "audienceType": "受众",
+    "maxPerUser": "每人次数",
+    "maxTotal": "总次数",
+    "unlimited": "不限制",
+    "expiresAt": "有效期（可选）",
+    "searchPlaceholder": "搜索兑换码…",
+    "filterAll": "全部状态",
+    "filterListed": "已上架",
+    "filterDelisted": "已下架",
+    "empty": "暂无兑换码",
+    "colCode": "码",
+    "colReward": "奖励",
+    "colAudience": "受众",
+    "colUsage": "已兑",
+    "colStatus": "状态",
+    "colActions": "操作",
+    "statusActive": "可兑",
+    "statusDelisted": "下架",
+    "statusExpired": "过期",
+    "statusExhausted": "用尽",
+    "delist": "下架",
+    "relist": "上架",
+    "viewRedemptions": "记录",
+    "redemptionsTitle": "兑换记录 · {{code}}",
+    "noRedemptions": "暂无成功兑换记录",
+    "rewardCreditsValue": "{{amount}} 积分",
+    "rewardGroupValue": "组：{{group}}",
+    "redemptionGroup": "{{changed}}",
+    "groupChanged": "已切换用户组",
+    "groupUnchanged": "已在目标组"
   }
 }

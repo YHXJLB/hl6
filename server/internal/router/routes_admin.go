@@ -33,6 +33,14 @@ func registerAdminRoutes(api *gin.RouterGroup, auth *middleware.AuthMiddleware, 
 	// Credits
 	admin.POST("/credits/grant", h.Credit.AdminGrant)
 
+	// Redeem codes
+	admin.GET("/redeem-codes", h.RedeemCode.AdminList)
+	admin.POST("/redeem-codes", h.RedeemCode.AdminCreate)
+	admin.POST("/redeem-codes/batch", h.RedeemCode.AdminBatchCreate)
+	admin.POST("/redeem-codes/:id/delist", h.RedeemCode.AdminDelist)
+	admin.POST("/redeem-codes/:id/relist", h.RedeemCode.AdminRelist)
+	admin.GET("/redeem-codes/:id/redemptions", h.RedeemCode.AdminListRedemptions)
+
 	// DNS records
 	admin.GET("/dns-records", h.DNS.AdminListRecords)
 	admin.DELETE("/dns-records/:id", h.DNS.AdminDeleteRecord)

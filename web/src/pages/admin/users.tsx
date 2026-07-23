@@ -39,6 +39,7 @@ import { GroupsContent } from "./groups";
 import { NotificationsContent } from "./notifications";
 import { BrandContent } from "./brand";
 import { CreditsSettingsContent } from "./credits-settings";
+import { RedeemCodesContent } from "./redeem-codes";
 import { useAuth } from "@/hooks/use-auth";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import { handleDnsBulkJobError } from "@/lib/dns-bulk-job-error";
@@ -599,7 +600,7 @@ export default function AdminUsersPage() {
   useDocumentTitle(t("adminUsers.pageTitle"));
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab");
-  const currentTab = tab && ["users", "groups", "notifications", "brand", "credits"].includes(tab)
+  const currentTab = tab && ["users", "groups", "notifications", "brand", "credits", "redeem-codes"].includes(tab)
     ? tab
     : "users";
 
@@ -626,6 +627,7 @@ export default function AdminUsersPage() {
           <TabsTrigger value="notifications">{t("adminUsers.tabNotifications")}</TabsTrigger>
           <TabsTrigger value="brand">{t("adminUsers.tabBrand")}</TabsTrigger>
           <TabsTrigger value="credits">{t("adminUsers.tabCredits")}</TabsTrigger>
+          <TabsTrigger value="redeem-codes">{t("adminUsers.tabRedeemCodes")}</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="mt-4 space-y-6">
           <UsersContent />
@@ -641,6 +643,9 @@ export default function AdminUsersPage() {
         </TabsContent>
         <TabsContent value="credits" className="mt-4">
           <CreditsSettingsContent />
+        </TabsContent>
+        <TabsContent value="redeem-codes" className="mt-4">
+          <RedeemCodesContent />
         </TabsContent>
       </Tabs>
     </div>

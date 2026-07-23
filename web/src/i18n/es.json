@@ -162,7 +162,15 @@
     "dailyCheckinNow": "Registrar ahora",
     "dailyCheckingIn": "Registrando...",
     "dailyCheckinClaimed": "Ya registrado hoy",
-    "dailyCheckinSuccess": "Registro exitoso, ganaste {{amount}} créditos"
+    "dailyCheckinSuccess": "Registro exitoso, ganaste {{amount}} créditos",
+    "redeemTitle": "Redeem code",
+    "redeemDesc": "Enter a redeem code to claim credits or switch user group",
+    "redeemPlaceholder": "Enter code",
+    "redeemSubmit": "Redeem",
+    "redeeming": "Redeeming…",
+    "redeemSuccessCredits": "Redeemed successfully, gained {{amount}} credits",
+    "redeemSuccessGroup": "Redeemed successfully, switched to “{{group}}”",
+    "redeemSuccessGroupUnchanged": "Redeemed successfully (already in “{{group}}”)"
   },
   "claimDialog": {
     "title": "Solicitar subdominio",
@@ -283,7 +291,8 @@
     "updatedAt": "Actualizado en",
     "bannedReason": "Motivo de bloqueo",
     "bannedAt": "Bloqueado en",
-    "bannedBy": "Bloqueado por ID"
+    "bannedBy": "Bloqueado por ID",
+    "tabRedeemCodes": "Códigos"
   },
   "adminBrand": {
     "title": "Marca",
@@ -533,7 +542,8 @@
     "subdomainDeletedDeduct": "Admin eliminó el dominio, créditos de bonificación reclamados por subdominio {{fqdn}}",
     "referralInviter": "Recompensa por invitar a {{name}}",
     "referralInvitee": "Recompensa por invitación de {{name}}",
-    "dailyCheckin": "Recompensa de registro diario"
+    "dailyCheckin": "Recompensa de registro diario",
+    "redeemCode": "Recompensa de código"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -736,7 +746,13 @@
     "dnsBulkJobQueuedBan": "Tarea DNS en cola (Job #{{jobID}}). Reintente el bloqueo cuando finalice.",
     "dnsBulkJobQueuedDelete": "Tarea DNS en cola (Job #{{jobID}}). Reintente la eliminación cuando finalice.",
     "dnsBulkJobQueuedRelease": "Tarea DNS en cola (Job #{{jobID}}). Reintente la liberación cuando finalice.",
-    "dnsBulkJobQueuedOperation": "Tarea DNS en cola (Job #{{jobID}}). Reintente la operación cuando finalice."
+    "dnsBulkJobQueuedOperation": "Tarea DNS en cola (Job #{{jobID}}). Reintente la operación cuando finalice.",
+    "redeemCodeUnavailable": "Redeem code is invalid or unavailable",
+    "redeemCodeConflict": "Redeem code conflicts with an active code",
+    "redeemCodeInvalidReward": "Invalid reward configuration",
+    "redeemCodeInvalidAudience": "Invalid audience configuration",
+    "redeemCodeInvalidFormat": "Invalid redeem code format",
+    "redeemCodeNotFound": "Redeem code not found"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1058,5 +1074,56 @@
       "intro": "Tu subdominio {{fqdn}} ha sido liberado por un administrador.",
       "reason": "Motivo: {{reason}}"
     }
+  },
+  "adminRedeemCodes": {
+    "title": "Redeem Codes",
+    "totalEntries": "{{count}} redeem codes",
+    "create": "Create code",
+    "createTitle": "Create redeem code",
+    "batchCreate": "Batch generate",
+    "batchCreateTitle": "Batch generate codes",
+    "batchCount": "Count",
+    "batchHint": "Each code is 5 English letters, max_total forced to 1; default 10, max 200",
+    "created": "Redeem code created",
+    "batchCreated": "Generated {{count}} redeem codes",
+    "delisted": "Delisted",
+    "relisted": "Relisted",
+    "code": "Code",
+    "rewardType": "Reward type",
+    "rewardCredits": "Credits",
+    "rewardGroup": "User group",
+    "creditAmount": "Credit amount",
+    "targetGroup": "Target group",
+    "selectGroup": "Select group",
+    "audienceType": "Audience",
+    "maxPerUser": "Per-user limit",
+    "maxTotal": "Total limit",
+    "unlimited": "Unlimited",
+    "expiresAt": "Expires at (optional)",
+    "searchPlaceholder": "Search codes…",
+    "filterAll": "All",
+    "filterListed": "Listed",
+    "filterDelisted": "Delisted",
+    "empty": "No redeem codes yet",
+    "colCode": "Code",
+    "colReward": "Reward",
+    "colAudience": "Audience",
+    "colUsage": "Redeemed",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "statusActive": "Redeemable",
+    "statusDelisted": "Delisted",
+    "statusExpired": "Expired",
+    "statusExhausted": "Exhausted",
+    "delist": "Delist",
+    "relist": "Relist",
+    "viewRedemptions": "Records",
+    "redemptionsTitle": "Redemptions · {{code}}",
+    "noRedemptions": "No successful redemptions yet",
+    "rewardCreditsValue": "{{amount}} credits",
+    "rewardGroupValue": "Group: {{group}}",
+    "redemptionGroup": "{{changed}}",
+    "groupChanged": "Group changed",
+    "groupUnchanged": "Already in target group"
   }
 }

@@ -11,6 +11,7 @@ func registerCreditRoutes(api *gin.RouterGroup, auth *middleware.AuthMiddleware,
 	authed.GET("/credits/transactions", h.Credit.ListTransactions)
 	authed.GET("/credits/checkin/status", h.Credit.GetDailyCheckinStatus)
 	authed.POST("/credits/checkin", h.Credit.DailyCheckin)
+	authed.POST("/credits/redeem", h.RedeemCode.Redeem)
 
 	authed.GET("/referrals", h.Referral.GetReferralInfo)
 }

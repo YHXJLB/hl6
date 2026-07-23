@@ -9,6 +9,11 @@ import type {
   CreditTransaction,
   DailyCheckinStatus,
   DailyCheckinClaimResult,
+  RedeemCode,
+  RedeemCodeRedemption,
+  RedeemCodeResult,
+  CreateRedeemCodePayload,
+  BatchRedeemCodePayload,
   DomainGroupAccess,
   DomainWithGroupAccess,
   DNSProviderZone,
@@ -303,6 +308,11 @@ export const api = {
     request<ApiResponse<DailyCheckinStatus>>("/credits/checkin/status"),
   claimDailyCheckin: () =>
     request<ApiResponse<DailyCheckinClaimResult>>("/credits/checkin", { method: "POST" }),
+  redeemCode: (code: string) =>
+    request<ApiResponse<RedeemCodeResult>>("/credits/redeem", {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    }),
 
   // Referrals
   getReferrals: (page = 1, perPage = 20) =>
@@ -537,6 +547,39 @@ export const api = {
     }
     return res.json() as Promise<ApiResponse<{ id: number; url: string }>>;
   },
+
+  // Admin: Redeem codes
+  adminListRedeemCodes: (
+    page = 1,
+    perPage = 20,
+    filters: { listed?: boolean; batch_id?: string; q?: string } = {}
+  ) => {
+    const params: Record<string, string | undefined> = {
+      q: filters.q,
+      batch_id: filters.batch_id,
+      listed: filters.listed === undefined ? undefined : String(filters.listed),
+    };
+    const path = buildPaginatedQuery("/admin/redeem-codes", page, perPage, params);
+    return request<PaginatedResponse<RedeemCode[]>>(path);
+  },
+  adminCreateRedeemCode: (data: CreateRedeemCodePayload) =>
+    request<ApiResponse<RedeemCode>>("/admin/redeem-codes", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  adminBatchRedeemCodes: (data: BatchRedeemCodePayload) =>
+    request<ApiResponse<{ batch_id: string; items: RedeemCode[] }>>("/admin/redeem-codes/batch", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  adminDelistRedeemCode: (id: number) =>
+    request<ApiResponse<RedeemCode>>(`/admin/redeem-codes/${id}/delist`, { method: "POST" }),
+  adminRelistRedeemCode: (id: number) =>
+    request<ApiResponse<RedeemCode>>(`/admin/redeem-codes/${id}/relist`, { method: "POST" }),
+  adminListRedeemCodeRedemptions: (id: number, page = 1, perPage = 20) =>
+    request<PaginatedResponse<RedeemCodeRedemption[]>>(
+      `/admin/redeem-codes/${id}/redemptions?page=${page}&per_page=${perPage}`
+    ),
 
   // Admin: Content audit workbench
   adminGetAuditSummary: () => request<ApiResponse<AuditSummary>>("/admin/audit/summary"),

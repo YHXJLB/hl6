@@ -162,7 +162,15 @@
     "dailyCheckinNow": "立即簽到",
     "dailyCheckingIn": "簽到中...",
     "dailyCheckinClaimed": "今日已簽到",
-    "dailyCheckinSuccess": "簽到成功，獲得 {{amount}} 積分"
+    "dailyCheckinSuccess": "簽到成功，獲得 {{amount}} 積分",
+    "redeemTitle": "兌換碼",
+    "redeemDesc": "輸入兌換碼領取積分或切換使用者群組",
+    "redeemPlaceholder": "輸入兌換碼",
+    "redeemSubmit": "兌換",
+    "redeeming": "兌換中…",
+    "redeemSuccessCredits": "兌換成功，獲得 {{amount}} 積分",
+    "redeemSuccessGroup": "兌換成功，已切換到「{{group}}」",
+    "redeemSuccessGroupUnchanged": "兌換成功（已在「{{group}}」）"
   },
   "claimDialog": {
     "title": "申請子網域",
@@ -283,7 +291,8 @@
     "updatedAt": "更新時間",
     "bannedReason": "封禁原因",
     "bannedAt": "封禁時間",
-    "bannedBy": "封禁人 ID"
+    "bannedBy": "封禁人 ID",
+    "tabRedeemCodes": "兌換碼"
   },
   "adminBrand": {
     "title": "品牌設定",
@@ -533,7 +542,8 @@
     "subdomainDeletedDeduct": "管理員刪除網域，扣回子網域 {{fqdn}} 的獎勵積分",
     "referralInviter": "邀請用戶 {{name}} 註冊獎勵",
     "referralInvitee": "受 {{name}} 邀請註冊獎勵",
-    "dailyCheckin": "每日簽到獎勵"
+    "dailyCheckin": "每日簽到獎勵",
+    "redeemCode": "兌換碼獎勵"
   },
   "notifications": {
     "title": "通知",
@@ -736,7 +746,13 @@
     "dnsBulkJobQueuedBan": "DNS 批次任務已排隊（Job #{{jobID}}），請等待完成後重試封禁",
     "dnsBulkJobQueuedDelete": "DNS 批次任務已排隊（Job #{{jobID}}），請等待完成後重試刪除",
     "dnsBulkJobQueuedRelease": "DNS 批次任務已排隊（Job #{{jobID}}），請等待完成後重試釋放",
-    "dnsBulkJobQueuedOperation": "DNS 批次任務已排隊（Job #{{jobID}}），請等待完成後重試操作"
+    "dnsBulkJobQueuedOperation": "DNS 批次任務已排隊（Job #{{jobID}}），請等待完成後重試操作",
+    "redeemCodeUnavailable": "兌換碼無效或不可用",
+    "redeemCodeConflict": "兌換碼與目前生效中的碼衝突",
+    "redeemCodeInvalidReward": "獎勵設定無效",
+    "redeemCodeInvalidAudience": "受眾設定無效",
+    "redeemCodeInvalidFormat": "兌換碼格式無效",
+    "redeemCodeNotFound": "兌換碼未找到"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1058,5 +1074,56 @@
       "intro": "您的子網域 {{fqdn}} 已被管理員釋放。",
       "reason": "原因：{{reason}}"
     }
+  },
+  "adminRedeemCodes": {
+    "title": "兌換碼",
+    "totalEntries": "共 {{count}} 個兌換碼",
+    "create": "建立兌換碼",
+    "createTitle": "建立兌換碼",
+    "batchCreate": "批量產生",
+    "batchCreateTitle": "批量產生兌換碼",
+    "batchCount": "Count",
+    "batchHint": "Each code is 5 English letters, max_total forced to 1; default 10, max 200",
+    "created": "兌換碼已建立",
+    "batchCreated": "已產生 {{count}} 個兌換碼",
+    "delisted": "已下架",
+    "relisted": "已重新上架",
+    "code": "兌換碼",
+    "rewardType": "獎勵類型",
+    "rewardCredits": "積分",
+    "rewardGroup": "使用者群組",
+    "creditAmount": "積分數量",
+    "targetGroup": "目標使用者群組",
+    "selectGroup": "選擇群組",
+    "audienceType": "受眾",
+    "maxPerUser": "每人次數",
+    "maxTotal": "總次數",
+    "unlimited": "不限制",
+    "expiresAt": "有效期（可選）",
+    "searchPlaceholder": "搜尋兌換碼…",
+    "filterAll": "全部狀態",
+    "filterListed": "已上架",
+    "filterDelisted": "已下架",
+    "empty": "暫無兌換碼",
+    "colCode": "Code",
+    "colReward": "Reward",
+    "colAudience": "Audience",
+    "colUsage": "Redeemed",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "statusActive": "可兌",
+    "statusDelisted": "下架",
+    "statusExpired": "過期",
+    "statusExhausted": "用盡",
+    "delist": "下架",
+    "relist": "上架",
+    "viewRedemptions": "記錄",
+    "redemptionsTitle": "兌換記錄 · {{code}}",
+    "noRedemptions": "暫無成功兌換記錄",
+    "rewardCreditsValue": "{{amount}} 積分",
+    "rewardGroupValue": "群組：{{group}}",
+    "redemptionGroup": "{{changed}}",
+    "groupChanged": "已切換使用者群組",
+    "groupUnchanged": "已在目標群組"
   }
 }

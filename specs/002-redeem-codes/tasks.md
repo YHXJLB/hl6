@@ -20,9 +20,9 @@
 
 **Purpose**: 对齐类型、文案键与装配入口，不引入新依赖
 
-- [ ] T001 在 `web/src/types/index.ts` 增加兑换码相关 TypeScript 类型（`RedeemCode`、`RedeemCodeRedemption`、`RedeemRewardType`、`RedeemAudienceType`、兑换成功响应等），字段对齐 `specs/002-redeem-codes/contracts/redeem-code-api-contract.md`
-- [ ] T002 [P] 在 `web/src/i18n/zh.json` 与 `web/src/i18n/en.json` 增加最小文案键：`credits.redeem*`、`adminRedeemCodes.*`、`error.redeemCodeUnavailable`、`txn.redeemCode`（其余 4 语言可先复用英文占位键名）
-- [ ] T003 [P] 在 `web/src/lib/api.ts` 预留 API 方法签名占位（`redeemCode`、`adminListRedeemCodes`、`adminCreateRedeemCode`、`adminBatchRedeemCodes`、`adminDelistRedeemCode`、`adminRelistRedeemCode`、`adminListRedeemCodeRedemptions`），暂可抛未实现或空实现待后续任务填充
+- [X] T001 在 `web/src/types/index.ts` 增加兑换码相关 TypeScript 类型（`RedeemCode`、`RedeemCodeRedemption`、`RedeemRewardType`、`RedeemAudienceType`、兑换成功响应等），字段对齐 `specs/002-redeem-codes/contracts/redeem-code-api-contract.md`
+- [X] T002 [P] 在 `web/src/i18n/zh.json` 与 `web/src/i18n/en.json` 增加最小文案键：`credits.redeem*`、`adminRedeemCodes.*`、`error.redeemCodeUnavailable`、`txn.redeemCode`（其余 4 语言可先复用英文占位键名）
+- [X] T003 [P] 在 `web/src/lib/api.ts` 预留 API 方法签名占位（`redeemCode`、`adminListRedeemCodes`、`adminCreateRedeemCode`、`adminBatchRedeemCodes`、`adminDelistRedeemCode`、`adminRelistRedeemCode`、`adminListRedeemCodeRedemptions`），暂可抛未实现或空实现待后续任务填充
 
 ---
 
@@ -32,11 +32,11 @@
 
 **⚠️ CRITICAL**: 本阶段未完成前，不要实现兑换/创建 HTTP 与页面
 
-- [ ] T004 在 `server/internal/model/redeem_code.go` 实现 `RedeemCode`、`RedeemCodeRedemption` 及常量（`reward_type`/`audience_type`），字段对齐 `specs/002-redeem-codes/data-model.md`
-- [ ] T005 在 `server/cmd/server/main.go`（或现有 AutoMigrate 注册处）注册 `RedeemCode`、`RedeemCodeRedemption` 自动迁移
-- [ ] T006 [P] 在 `server/internal/model/redeem_code.go` 或 `server/internal/helpers/redeem_code.go` 实现码字符串 `Trim`、字符集校验（字母/数字/中文）、英文大写归一化 `NormalizeRedeemCode`
-- [ ] T007 在 `server/internal/repository/redeem_code.go` 实现基础读写：`CreateRedeemCode`、`FindRedeemCodeByNormalized`、`CountActiveConflict`（生效中唯一性）、`LockRedeemCodeByID`（事务内 `FOR UPDATE`）、`CountUserRedemptions`、`InsertRedemption`、`IncrementRedeemedCount`
-- [ ] T008 [P] 在 `server/internal/router/handlers.go` 增加 `RedeemCode` handler 字段与构造函数装配（handler 文件可先空壳）
+- [X] T004 在 `server/internal/model/redeem_code.go` 实现 `RedeemCode`、`RedeemCodeRedemption` 及常量（`reward_type`/`audience_type`），字段对齐 `specs/002-redeem-codes/data-model.md`
+- [X] T005 在 `server/cmd/server/main.go`（或现有 AutoMigrate 注册处）注册 `RedeemCode`、`RedeemCodeRedemption` 自动迁移
+- [X] T006 [P] 在 `server/internal/model/redeem_code.go` 或 `server/internal/helpers/redeem_code.go` 实现码字符串 `Trim`、字符集校验（字母/数字/中文）、英文大写归一化 `NormalizeRedeemCode`
+- [X] T007 在 `server/internal/repository/redeem_code.go` 实现基础读写：`CreateRedeemCode`、`FindRedeemCodeByNormalized`、`CountActiveConflict`（生效中唯一性）、`LockRedeemCodeByID`（事务内 `FOR UPDATE`）、`CountUserRedemptions`、`InsertRedemption`、`IncrementRedeemedCount`
+- [X] T008 [P] 在 `server/internal/router/handlers.go` 增加 `RedeemCode` handler 字段与构造函数装配（handler 文件可先空壳）
 
 **Checkpoint**: 迁移可建表；归一化与仓储可被上层调用
 
@@ -50,12 +50,12 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] 在 `server/internal/repository/redeem_code.go` 实现事务方法 `RedeemCodeForUser(userID, normalizedCode)`：行锁 → 校验上架/有效期/总次数/每人次数/受众 → 校验目标组存在（组奖励）→ `GrantCredits` 或更新 `group_id` → 写 `redeem_code_redemptions` → `redeemed_count++`；任一业务失败返回统一内部错误供 handler 映射笼统 key
-- [ ] T010 [US1] 在 `server/internal/handler/redeem_code.go` 实现用户 `Redeem`：解析 body `code`、归一化、调用仓储、成功返回合同中的 `data` 形状；业务失败一律 `400` + `error.redeemCodeUnavailable`
-- [ ] T011 [US1] 在 `server/internal/router/routes_credit.go` 注册 `POST /credits/redeem`（需登录）
-- [ ] T012 [P] [US1] 在 `web/src/lib/api.ts` 实现 `redeemCode(code)` 请求 `POST /api/v1/credits/redeem`
-- [ ] T013 [P] [US1] 在 `web/src/hooks/use-credits.ts`（或新建 `web/src/hooks/use-redeem-code.ts`）增加兑换 mutation，成功后 invalidate `credits` / transactions / 用户信息（若组变更需刷新 auth/user）
-- [ ] T014 [US1] 在 `web/src/pages/credits.tsx` 增加兑换输入区：输入默认大写展示、提交、成功 toast（积分或组）、失败展示笼统错误文案；样式对齐现有积分页
+- [X] T009 [US1] 在 `server/internal/repository/redeem_code.go` 实现事务方法 `RedeemCodeForUser(userID, normalizedCode)`：行锁 → 校验上架/有效期/总次数/每人次数/受众 → 校验目标组存在（组奖励）→ `GrantCredits` 或更新 `group_id` → 写 `redeem_code_redemptions` → `redeemed_count++`；任一业务失败返回统一内部错误供 handler 映射笼统 key
+- [X] T010 [US1] 在 `server/internal/handler/redeem_code.go` 实现用户 `Redeem`：解析 body `code`、归一化、调用仓储、成功返回合同中的 `data` 形状；业务失败一律 `400` + `error.redeemCodeUnavailable`
+- [X] T011 [US1] 在 `server/internal/router/routes_credit.go` 注册 `POST /credits/redeem`（需登录）
+- [X] T012 [P] [US1] 在 `web/src/lib/api.ts` 实现 `redeemCode(code)` 请求 `POST /api/v1/credits/redeem`
+- [X] T013 [P] [US1] 在 `web/src/hooks/use-credits.ts`（或新建 `web/src/hooks/use-redeem-code.ts`）增加兑换 mutation，成功后 invalidate `credits` / transactions / 用户信息（若组变更需刷新 auth/user）
+- [X] T014 [US1] 在 `web/src/pages/credits.tsx` 增加兑换输入区：输入默认大写展示、提交、成功 toast（积分或组）、失败展示笼统错误文案；样式对齐现有积分页
 
 **Checkpoint**: 预置码可完成用户侧兑换闭环（MVP）
 
@@ -69,15 +69,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] 在 `server/internal/handler/redeem_code.go`（或 `redeem_code_admin.go`）实现 `AdminCreate`：校验奖励互斥、正数积分（`ParseDisplayCredit` + `>0`）、受众、次数、字符集、生效中冲突；写入 `redeem_codes`；冲突返回 `409` + `error.redeemCodeConflict`
-- [ ] T016 [US2] 实现 `AdminBatchCreate`：`count` 默认 10、上限 200；每码 5 位 `[A-Z]`、`max_total=1`、共享 `batch_id`；碰撞重试后仍失败则整批回滚
-- [ ] T017 [US2] 实现 `AdminList`：分页与可选筛选（`listed`/`batch_id`/`q`），返回计算字段 `is_expired`/`is_exhausted`/`is_redeemable`
-- [ ] T018 [US2] 在 `server/internal/router/routes_admin.go` 注册 `GET/POST /admin/redeem-codes`、`POST /admin/redeem-codes/batch`
-- [ ] T019 [P] [US2] 在 `web/src/lib/api.ts` 补齐管理端创建/批量/列表客户端方法
-- [ ] T020 [P] [US2] 在 `web/src/hooks/use-redeem-codes.ts` 实现 `useAdminRedeemCodes`、`useAdminCreateRedeemCode`、`useAdminBatchRedeemCodes`
-- [ ] T021 [US2] 新建 `web/src/pages/admin/redeem-codes.tsx`：列表 + 创建对话框（奖励二选一、受众 `all|users|groups` 对齐 `web/src/pages/admin/notifications.tsx` 邮箱搜索多选、次数可空、有效期可选、自定义码输入、批量生成入口）
-- [ ] T022 [US2] 在 `web/src/pages/admin/users.tsx` 增加 tab `redeem-codes` 与 `TabsTrigger`/`TabsContent`，挂载 `RedeemCodesContent`；同步 tab 白名单与 i18n `adminUsers.tabRedeemCodes`
-- [ ] T023 [P] [US2] 补齐 `web/src/i18n/es.json`、`ja.json`、`ru.json`、`zh-Hant.json` 中 `adminRedeemCodes.*` / 相关 error 键（可先英文）
+- [X] T015 [US2] 在 `server/internal/handler/redeem_code.go`（或 `redeem_code_admin.go`）实现 `AdminCreate`：校验奖励互斥、正数积分（`ParseDisplayCredit` + `>0`）、受众、次数、字符集、生效中冲突；写入 `redeem_codes`；冲突返回 `409` + `error.redeemCodeConflict`
+- [X] T016 [US2] 实现 `AdminBatchCreate`：`count` 默认 10、上限 200；每码 5 位 `[A-Z]`、`max_total=1`、共享 `batch_id`；碰撞重试后仍失败则整批回滚
+- [X] T017 [US2] 实现 `AdminList`：分页与可选筛选（`listed`/`batch_id`/`q`），返回计算字段 `is_expired`/`is_exhausted`/`is_redeemable`
+- [X] T018 [US2] 在 `server/internal/router/routes_admin.go` 注册 `GET/POST /admin/redeem-codes`、`POST /admin/redeem-codes/batch`
+- [X] T019 [P] [US2] 在 `web/src/lib/api.ts` 补齐管理端创建/批量/列表客户端方法
+- [X] T020 [P] [US2] 在 `web/src/hooks/use-redeem-codes.ts` 实现 `useAdminRedeemCodes`、`useAdminCreateRedeemCode`、`useAdminBatchRedeemCodes`
+- [X] T021 [US2] 新建 `web/src/pages/admin/redeem-codes.tsx`：列表 + 创建对话框（奖励二选一、受众 `all|users|groups` 对齐 `web/src/pages/admin/notifications.tsx` 邮箱搜索多选、次数可空、有效期可选、自定义码输入、批量生成入口）
+- [X] T022 [US2] 在 `web/src/pages/admin/users.tsx` 增加 tab `redeem-codes` 与 `TabsTrigger`/`TabsContent`，挂载 `RedeemCodesContent`；同步 tab 白名单与 i18n `adminUsers.tabRedeemCodes`
+- [X] T023 [P] [US2] 补齐 `web/src/i18n/es.json`、`ja.json`、`ru.json`、`zh-Hant.json` 中 `adminRedeemCodes.*` / 相关 error 键（可先英文）
 
 **Checkpoint**: 管理员可自助创建/批量码，用户可兑
 
@@ -91,11 +91,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] 在 `server/internal/handler/redeem_code.go` 实现 `AdminDelist`、`AdminRelist`（过期则 `expires_at=null`；不重置 `redeemed_count`）；**不**提供 PUT/PATCH 更新接口
-- [ ] T025 [US3] 实现 `AdminListRedemptions`：分页返回用户邮箱、时间、奖励摘要、`group_changed`
-- [ ] T026 [US3] 在 `server/internal/router/routes_admin.go` 注册 `POST /admin/redeem-codes/:id/delist`、`POST .../relist`、`GET .../redemptions`
-- [ ] T027 [P] [US3] 在 `web/src/lib/api.ts` 与 `web/src/hooks/use-redeem-codes.ts` 增加 delist/relist/redemptions 方法与 hooks
-- [ ] T028 [US3] 在 `web/src/pages/admin/redeem-codes.tsx` 增加上下架操作、状态徽章（过期/下架/用尽）、兑换记录抽屉/对话框；确认无编辑码串/受众/次数/奖励/有效期的入口
+- [X] T024 [US3] 在 `server/internal/handler/redeem_code.go` 实现 `AdminDelist`、`AdminRelist`（过期则 `expires_at=null`；不重置 `redeemed_count`）；**不**提供 PUT/PATCH 更新接口
+- [X] T025 [US3] 实现 `AdminListRedemptions`：分页返回用户邮箱、时间、奖励摘要、`group_changed`
+- [X] T026 [US3] 在 `server/internal/router/routes_admin.go` 注册 `POST /admin/redeem-codes/:id/delist`、`POST .../relist`、`GET .../redemptions`
+- [X] T027 [P] [US3] 在 `web/src/lib/api.ts` 与 `web/src/hooks/use-redeem-codes.ts` 增加 delist/relist/redemptions 方法与 hooks
+- [X] T028 [US3] 在 `web/src/pages/admin/redeem-codes.tsx` 增加上下架操作、状态徽章（过期/下架/用尽）、兑换记录抽屉/对话框；确认无编辑码串/受众/次数/奖励/有效期的入口
 
 **Checkpoint**: 运营可纠错上下架并审计成功兑换
 
@@ -109,9 +109,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T029 [US4] 审查并收敛 `server/internal/handler/redeem_code.go` 用户 `Redeem` 所有业务失败分支，确保仅映射 `error.redeemCodeUnavailable`，响应 `data` 不泄露原因细分
-- [ ] T030 [US4] 确认 `AdminList` 计算字段与原始字段足以区分过期、下架、用尽、受众类型；必要时在 `web/src/pages/admin/redeem-codes.tsx` 补齐状态列展示
-- [ ] T031 [P] [US4] 在全部 `web/src/i18n/*.json` 统一用户失败文案语义为「兑换码无效或不可用」（各语言等价表述）
+- [X] T029 [US4] 审查并收敛 `server/internal/handler/redeem_code.go` 用户 `Redeem` 所有业务失败分支，确保仅映射 `error.redeemCodeUnavailable`，响应 `data` 不泄露原因细分
+- [X] T030 [US4] 确认 `AdminList` 计算字段与原始字段足以区分过期、下架、用尽、受众类型；必要时在 `web/src/pages/admin/redeem-codes.tsx` 补齐状态列展示
+- [X] T031 [P] [US4] 在全部 `web/src/i18n/*.json` 统一用户失败文案语义为「兑换码无效或不可用」（各语言等价表述）
 
 **Checkpoint**: 安全提示策略与管理可观测性同时满足
 
@@ -121,9 +121,9 @@
 
 **Purpose**: 跨故事收尾与手工验收
 
-- [ ] T032 [P] 在积分流水前端展示路径确认 `txn.redeemCode` 有可读翻译（`web/src/pages/credits.tsx` / 流水渲染组件与 i18n）
+- [X] T032 [P] 在积分流水前端展示路径确认 `txn.redeemCode` 有可读翻译（`web/src/pages/credits.tsx` / 流水渲染组件与 i18n）
 - [ ] T033 按 `specs/002-redeem-codes/quickstart.md` 场景 A–E、G 做手工验收并记录缺口（并发 F 可选）
-- [ ] T034 [P] 检查封禁用户无法调用 `POST /credits/redeem`（沿用既有 auth/ban 中间件，不新增旁路）
+- [X] T034 [P] 检查封禁用户无法调用 `POST /credits/redeem`（沿用既有 auth/ban 中间件，不新增旁路）
 
 ---
 

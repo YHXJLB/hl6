@@ -24,6 +24,7 @@ type Handlers struct {
 	NotificationAdmin *handler.NotificationAdminHandler
 	Audit             *handler.AuditHandler
 	SSEBroker         *handler.SSEBroker
+	RedeemCode        *handler.RedeemCodeHandler
 }
 
 func NewHandlers(cfg *config.Config, repo *repository.Repository, dnsOps *service.DNSOperationService, migSvc *service.DomainMigrationService, sseBroker *handler.SSEBroker, audit auditStack) *Handlers {
@@ -43,5 +44,6 @@ func NewHandlers(cfg *config.Config, repo *repository.Repository, dnsOps *servic
 		NotificationAdmin: handler.NewNotificationAdminHandler(repo, sseBroker, cfg),
 		Audit:             handler.NewAuditHandler(repo, audit.auditSvc, audit.subSvc, dnsOps, audit.enqueue, audit.notif, audit.auditLog),
 		SSEBroker:         sseBroker,
+		RedeemCode:        handler.NewRedeemCodeHandler(repo),
 	}
 }

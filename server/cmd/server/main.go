@@ -191,6 +191,8 @@ func runSchemaMigrations(db *gorm.DB) error {
 			&model.NotificationImage{},
 			&model.BrandingAsset{},
 			&model.UserReferral{},
+			&model.RedeemCode{},
+			&model.RedeemCodeRedemption{},
 		); err != nil {
 			return err
 		}

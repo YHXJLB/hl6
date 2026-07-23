@@ -246,6 +246,81 @@ export interface CreditTransaction {
   created_at: string;
 }
 
+export type RedeemRewardType = "credits" | "group";
+export type RedeemAudienceType = "all" | "users" | "groups";
+
+export interface RedeemCode {
+  id: number;
+  code_display: string;
+  reward_type: RedeemRewardType;
+  credit_amount?: number | null;
+  target_group_id?: number | null;
+  target_group_name?: string | null;
+  audience_type: RedeemAudienceType;
+  audience_ids: number[];
+  max_per_user?: number | null;
+  max_total?: number | null;
+  redeemed_count: number;
+  expires_at?: string | null;
+  listed: boolean;
+  is_expired: boolean;
+  is_exhausted: boolean;
+  is_redeemable: boolean;
+  batch_id?: string | null;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RedeemCodeRedemption {
+  id: number;
+  user_id: number;
+  user_email?: string;
+  reward_type: RedeemRewardType;
+  credit_amount?: number | null;
+  target_group_id?: number | null;
+  group_changed: boolean;
+  created_at: string;
+}
+
+export interface RedeemCodeResultCredits {
+  reward_type: "credits";
+  credit_amount: number;
+  balance: number;
+}
+
+export interface RedeemCodeResultGroup {
+  reward_type: "group";
+  target_group_id: number;
+  target_group_name: string;
+  group_changed: boolean;
+}
+
+export type RedeemCodeResult = RedeemCodeResultCredits | RedeemCodeResultGroup;
+
+export interface CreateRedeemCodePayload {
+  code: string;
+  reward_type: RedeemRewardType;
+  credit_amount?: number;
+  target_group_id?: number;
+  audience_type: RedeemAudienceType;
+  audience_ids?: number[];
+  max_per_user?: number | null;
+  max_total?: number | null;
+  expires_at?: string | null;
+}
+
+export interface BatchRedeemCodePayload {
+  count?: number;
+  reward_type: RedeemRewardType;
+  credit_amount?: number;
+  target_group_id?: number;
+  audience_type: RedeemAudienceType;
+  audience_ids?: number[];
+  max_per_user?: number | null;
+  expires_at?: string | null;
+}
+
 export interface ApiResponse<T> {
   code: number;
   message: string;
