@@ -136,6 +136,7 @@ $RECYCLE.BIN/
 # ================================
 .codex/
 .opencode/
+.cursor/
 
 # ================================
 # Docker (local volumes, not config)
@@ -151,3 +152,4 @@ docker-compose.override.yml
 *.pid
 *.seed
 docker-compose.yml
+
