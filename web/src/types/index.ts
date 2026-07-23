@@ -279,6 +279,7 @@ export interface RedeemCodeRedemption {
   reward_type: RedeemRewardType;
   credit_amount?: number | null;
   target_group_id?: number | null;
+  target_group_name?: string | null;
   group_changed: boolean;
   created_at: string;
 }

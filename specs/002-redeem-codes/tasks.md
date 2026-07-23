@@ -122,7 +122,7 @@
 **Purpose**: 跨故事收尾与手工验收
 
 - [X] T032 [P] 在积分流水前端展示路径确认 `txn.redeemCode` 有可读翻译（`web/src/pages/credits.tsx` / 流水渲染组件与 i18n）
-- [ ] T033 按 `specs/002-redeem-codes/quickstart.md` 场景 A–E、G 做手工验收并记录缺口（并发 F 可选）
+- [X] T033 按 `specs/002-redeem-codes/quickstart.md` 场景 A–E、G 做手工验收并记录缺口（并发 F 可选）
 - [X] T034 [P] 检查封禁用户无法调用 `POST /credits/redeem`（沿用既有 auth/ban 中间件，不新增旁路）
 
 ---
@@ -203,3 +203,8 @@ Task: "T023 其余语言 i18n 键"
 - 禁止实现通用 `PUT/PATCH /admin/redeem-codes/:id`
 - 批量码强制 `max_total=1`；自定义码 `max_*` 空=不限制
 - 每个 checkpoint 都可对照 `quickstart.md` 对应场景验收
+
+## Phase 8: Convergence
+
+- [X] T035 修复 `server/internal/repository/redeem_code.go` 中 `RedeemCodeForUser`：按 `code_normalized` 查找时优先锁定「生效中」记录（上架、未过期、未用尽），避免非生效码字符串复用后兑换落到旧行导致误失败；若无生效行再统一返回不可用 per FR-021 (partial)
+- [X] T036 管理端兑换记录奖励摘要补齐目标用户组展示：在 `AdminListRedemptions`/`web/src/pages/admin/redeem-codes.tsx` 中展示 `target_group_id` 或组名（而非仅 group_changed），满足「积分数额或目标用户组」摘要 per FR-030 / US3/AC6 (partial)

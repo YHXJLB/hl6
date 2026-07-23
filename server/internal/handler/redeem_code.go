@@ -493,15 +493,21 @@ func (h *RedeemCodeHandler) AdminListRedemptions(c *gin.Context) {
 		if row.User != nil {
 			email = row.User.Email
 		}
+		var groupName *string
+		if row.TargetGroup != nil {
+			name := row.TargetGroup.Name
+			groupName = &name
+		}
 		items = append(items, gin.H{
-			"id":              row.ID,
-			"user_id":         row.UserID,
-			"user_email":      email,
-			"reward_type":     row.RewardType,
-			"credit_amount":   row.CreditAmount,
-			"target_group_id": row.TargetGroupID,
-			"group_changed":   row.GroupChanged,
-			"created_at":      row.CreatedAt,
+			"id":                row.ID,
+			"user_id":           row.UserID,
+			"user_email":        email,
+			"reward_type":       row.RewardType,
+			"credit_amount":     row.CreditAmount,
+			"target_group_id":   row.TargetGroupID,
+			"target_group_name": groupName,
+			"group_changed":     row.GroupChanged,
+			"created_at":        row.CreatedAt,
 		})
 	}
 	response.Paginated(c, items, total, page, perPage)

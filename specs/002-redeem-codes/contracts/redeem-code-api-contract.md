@@ -193,7 +193,7 @@ Request:
 
 `items[]`：
 
-- `id`, `user_id`, `user_email`, `reward_type`, `credit_amount`, `target_group_id`, `group_changed`, `created_at`
+- `id`, `user_id`, `user_email`, `reward_type`, `credit_amount`, `target_group_id`, `target_group_name`, `group_changed`, `created_at`
 
 ---
 

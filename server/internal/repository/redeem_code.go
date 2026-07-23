@@ -135,7 +135,7 @@ func (r *Repository) ListRedeemCodeRedemptions(codeID uint, page, perPage int) (
 	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := q.Preload("User").
+	err := q.Preload("User").Preload("TargetGroup").
 		Order("id DESC").
 		Offset((page - 1) * perPage).
 		Limit(perPage).
@@ -192,24 +192,19 @@ func audienceAllows(tx *gorm.DB, code *model.RedeemCode, userID uint) bool {
 }
 
 // RedeemCodeForUser 事务内行锁兑换：校验 → 发奖/改组 → 写记录 → 递增次数。
+// 同归一化码可能存在多条历史行；优先锁定「生效中」记录，避免落到旧行误失败（FR-021）。
 func (r *Repository) RedeemCodeForUser(userID uint, normalizedCode string) (*RedeemResult, error) {
 	var result RedeemResult
 	err := r.Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
 		var code model.RedeemCode
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			Where("code_normalized = ?", normalizedCode).
+			Where("listed = ?", true).
+			Where("(expires_at IS NULL OR expires_at > ?)", now).
+			Where("(max_total IS NULL OR redeemed_count < max_total)").
+			Order("id DESC").
 			First(&code).Error; err != nil {
-			return ErrRedeemUnavailable
-		}
-
-		now := time.Now()
-		if !code.Listed {
-			return ErrRedeemUnavailable
-		}
-		if code.ExpiresAt != nil && !code.ExpiresAt.After(now) {
-			return ErrRedeemUnavailable
-		}
-		if code.MaxTotal != nil && code.RedeemedCount >= *code.MaxTotal {
 			return ErrRedeemUnavailable
 		}
 		if code.MaxPerUser != nil {

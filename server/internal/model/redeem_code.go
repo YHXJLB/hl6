@@ -43,13 +43,14 @@ type RedeemCode struct {
 
 // RedeemCodeRedemption 成功兑换记录。
 type RedeemCodeRedemption struct {
-	ID            uint      `json:"id" gorm:"primaryKey"`
-	RedeemCodeID  uint      `json:"redeem_code_id" gorm:"not null;index:idx_redeem_code_user"`
-	UserID        uint      `json:"user_id" gorm:"not null;index:idx_redeem_code_user"`
-	User          *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
-	RewardType    string    `json:"reward_type" gorm:"type:varchar(16);not null"`
-	CreditAmount  *Credit   `json:"credit_amount,omitempty" gorm:"type:bigint"`
-	TargetGroupID *uint     `json:"target_group_id,omitempty"`
-	GroupChanged  bool      `json:"group_changed" gorm:"not null;default:false"`
-	CreatedAt     time.Time `json:"created_at"`
+	ID            uint       `json:"id" gorm:"primaryKey"`
+	RedeemCodeID  uint       `json:"redeem_code_id" gorm:"not null;index:idx_redeem_code_user"`
+	UserID        uint       `json:"user_id" gorm:"not null;index:idx_redeem_code_user"`
+	User          *User      `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	RewardType    string     `json:"reward_type" gorm:"type:varchar(16);not null"`
+	CreditAmount  *Credit    `json:"credit_amount,omitempty" gorm:"type:bigint"`
+	TargetGroupID *uint      `json:"target_group_id,omitempty" gorm:"index"`
+	TargetGroup   *UserGroup `json:"target_group,omitempty" gorm:"foreignKey:TargetGroupID"`
+	GroupChanged  bool       `json:"group_changed" gorm:"not null;default:false"`
+	CreatedAt     time.Time  `json:"created_at"`
 }

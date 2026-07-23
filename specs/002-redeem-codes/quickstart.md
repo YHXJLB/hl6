@@ -82,3 +82,20 @@
 | 批量码 | 5 位英文，一码一次 |
 | 过期后上架 | 清除有效期 |
 | 次数用尽 | 不可靠上架重置 |
+
+---
+
+## 6. 验收记录（T033 · 2026-07-23）
+
+实现阶段本地未起完整栈，按代码路径对照 quickstart A–E、G（F 可选未跑）。结论：**代码路径覆盖完整，无阻塞缺口**；建议上线前用真实账号补跑一遍 UI。
+
+| 场景 | 代码路径结论 | 缺口 |
+|---|---|---|
+| A 积分码快乐路径 | 创建校验 + `RedeemCodeForUser`/`GrantCredits` + 积分页大写输入 + `txn.redeemCode` 流水文案 | 需 live：余额/流水 UI 目视 |
+| B 用户组码 | 组奖励更新 `group_id`；已在目标组仍成功且 `group_changed=false` | 需 live：组切换目视 |
+| C 权限与笼统错误 | 受众校验失败与无效码均 `error.redeemCodeUnavailable`；管理列表保留真实状态字段 | 无 |
+| D 批量一次性码 | batch 强制 `max_total=1`、5 位 A–Z、碰撞重试 | 需 live：批量结果列表目视 |
+| E 有效期与上下架 | 过期不可兑；delist/relist；过期 relist 清 `expires_at` | 需 live：过期码操作目视 |
+| G 不可变约束 | 无 PUT/PATCH 路由；管理 UI 仅上下架/记录，无编辑入口 | 无 |
+| 封禁（T034） | `auth.Required` + `IsBanned` 拦截；`/credits/redeem` 不在白名单 | 无 |
+| F 并发（可选） | 生效行 `FOR UPDATE` + `redeemed_count` 递增 | 未抽测 |

@@ -1122,7 +1122,7 @@
     "noRedemptions": "暫無成功兌換記錄",
     "rewardCreditsValue": "{{amount}} 積分",
     "rewardGroupValue": "群組：{{group}}",
-    "redemptionGroup": "{{changed}}",
+    "redemptionGroup": "{{group}}（{{changed}}）",
     "groupChanged": "已切換使用者群組",
     "groupUnchanged": "已在目標群組"
   }

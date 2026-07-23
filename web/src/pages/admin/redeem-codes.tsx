@@ -631,6 +631,9 @@ export function RedeemCodesContent() {
                       {row.reward_type === "credits"
                         ? t("adminRedeemCodes.rewardCreditsValue", { amount: row.credit_amount })
                         : t("adminRedeemCodes.redemptionGroup", {
+                            group:
+                              row.target_group_name ??
+                              (row.target_group_id != null ? `#${row.target_group_id}` : "—"),
                             changed: row.group_changed
                               ? t("adminRedeemCodes.groupChanged")
                               : t("adminRedeemCodes.groupUnchanged"),

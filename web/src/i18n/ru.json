@@ -1122,7 +1122,7 @@
     "noRedemptions": "No successful redemptions yet",
     "rewardCreditsValue": "{{amount}} credits",
     "rewardGroupValue": "Group: {{group}}",
-    "redemptionGroup": "{{changed}}",
+    "redemptionGroup": "{{group}} ({{changed}})",
     "groupChanged": "Group changed",
     "groupUnchanged": "Already in target group"
   }
