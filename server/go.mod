@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.43.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.31
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.30
-	github.com/aws/aws-sdk-go-v2/service/route53 v1.65.0
+	github.com/aws/aws-sdk-go-v2/service/route53 v1.65.1
 	github.com/baidubce/bce-sdk-go v0.9.272
 	github.com/chai2010/webp v1.4.0
 	github.com/cloudflare/cloudflare-go/v4 v4.6.0
