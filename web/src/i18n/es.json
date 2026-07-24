@@ -752,7 +752,8 @@
     "redeemCodeInvalidReward": "Invalid reward configuration",
     "redeemCodeInvalidAudience": "Invalid audience configuration",
     "redeemCodeInvalidFormat": "Formato de código inválido: solo chino, letras y dígitos",
-    "redeemCodeNotFound": "Redeem code not found"
+    "redeemCodeNotFound": "Redeem code not found",
+    "redeemCodeExhausted": "Los códigos agotados no se pueden publicar ni retirar"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1077,13 +1078,15 @@
   },
   "adminRedeemCodes": {
     "title": "Redeem Codes",
-    "totalEntries": "{{count}} redeem codes",
+    "totalEntries": "{{count}} en total",
     "create": "Create code",
     "createTitle": "Create redeem code",
     "batchCreate": "Batch generate",
     "batchCreateTitle": "Batch generate codes",
     "batchCount": "Count",
-    "batchHint": "Each code is 5 English letters, max_total forced to 1; default 10, max 200",
+    "batchHint": "Cada código tiene 5 letras en inglés y solo se puede canjear una vez; predeterminado 10, máx. 200",
+    "invalidLimits": "Los límites deben ser enteros positivos, o déjelos vacíos para ilimitado",
+    "invalidBatchCount": "La cantidad debe ser un entero entre 1 y 200",
     "created": "Redeem code created",
     "batchCreated": "Generated {{count}} redeem codes",
     "delisted": "Delisted",
@@ -1115,7 +1118,7 @@
     "statusActive": "Redeemable",
     "statusDelisted": "Delisted",
     "statusExpired": "Expired",
-    "statusExhausted": "Exhausted",
+    "statusExhausted": "Canjeado",
     "delist": "Delist",
     "relist": "Relist",
     "viewRedemptions": "Records",

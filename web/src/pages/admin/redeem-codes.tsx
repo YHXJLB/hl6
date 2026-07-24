@@ -67,18 +67,48 @@ function parseCreditInput(raw: string): number | null {
 }
 
 function statusBadges(code: RedeemCode, t: (k: string) => string) {
-  const badges: { key: string; label: string; variant: "default" | "secondary" | "destructive" | "outline" }[] = [];
+  const badges: {
+    key: string;
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+    className?: string;
+  }[] = [];
   if (!code.listed) {
     badges.push({ key: "delisted", label: t("adminRedeemCodes.statusDelisted"), variant: "secondary" });
   }
   if (code.is_expired) {
     badges.push({ key: "expired", label: t("adminRedeemCodes.statusExpired"), variant: "outline" });
   }
+
+  // 自定义码（非批量）：状态栏展示已兑/上限
+  if (!code.batch_id) {
+    const maxLabel = code.max_total != null ? String(code.max_total) : "♾️";
+    badges.push({
+      key: "usage",
+      label: `${code.redeemed_count}/${maxLabel}`,
+      variant: "secondary",
+      className:
+        "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 tabular-nums",
+    });
+    return badges;
+  }
+
   if (code.is_exhausted) {
-    badges.push({ key: "exhausted", label: t("adminRedeemCodes.statusExhausted"), variant: "destructive" });
+    badges.push({
+      key: "exhausted",
+      label: t("adminRedeemCodes.statusExhausted"),
+      variant: "secondary",
+      className: "bg-muted text-muted-foreground border-transparent",
+    });
   }
   if (code.is_redeemable) {
-    badges.push({ key: "active", label: t("adminRedeemCodes.statusActive"), variant: "default" });
+    badges.push({
+      key: "active",
+      label: t("adminRedeemCodes.statusActive"),
+      variant: "secondary",
+      className:
+        "bg-green-500/15 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800",
+    });
   }
   return badges;
 }
@@ -114,7 +144,7 @@ export function RedeemCodesContent() {
   // Create form state
   const [code, setCode] = useState("");
   const [rewardType, setRewardType] = useState<RedeemRewardType>("credits");
-  const [creditAmount, setCreditAmount] = useState("");
+  const [creditAmount, setCreditAmount] = useState("10");
   const [targetGroupId, setTargetGroupId] = useState<string>("");
   const [audienceType, setAudienceType] = useState<RedeemAudienceType>("all");
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
@@ -160,7 +190,7 @@ export function RedeemCodesContent() {
   const resetForm = () => {
     setCode("");
     setRewardType("credits");
-    setCreditAmount("");
+    setCreditAmount("10");
     setTargetGroupId("");
     setAudienceType("all");
     setSelectedUserIds([]);
@@ -200,46 +230,85 @@ export function RedeemCodesContent() {
     (audienceType === "groups" && selectedGroupIds.length > 0);
 
   const handleCreate = async () => {
-    const reward = buildRewardPayload();
-    if (!reward || !code.trim() || !canSubmitAudience) return;
+    if (!code.trim()) {
+      toast.error(t("error.redeemCodeInvalidFormat"));
+      return;
+    }
     if (!isValidRedeemCodeInput(code)) {
       toast.error(t("error.redeemCodeInvalidFormat"));
       return;
     }
+    if (!canSubmitAudience) {
+      toast.error(t("error.redeemCodeInvalidAudience"));
+      return;
+    }
+    const reward = buildRewardPayload();
+    if (!reward) {
+      toast.error(
+        rewardType === "credits"
+          ? t("error.invalidCreditAmount")
+          : t("error.redeemCodeInvalidReward")
+      );
+      return;
+    }
     const mpu = parseOptionalInt(maxPerUser);
     const mt = parseOptionalInt(maxTotal);
-    if (mpu === undefined || mt === undefined) return;
+    if (mpu === undefined || mt === undefined) {
+      toast.error(t("adminRedeemCodes.invalidLimits"));
+      return;
+    }
 
-    await createMutation.mutateAsync({
-      code: code.trim(),
-      ...reward,
-      audience_type: audienceType,
-      audience_ids: audienceIds,
-      max_per_user: mpu,
-      max_total: mt,
-      expires_at: expiresAt.trim() ? new Date(expiresAt).toISOString() : null,
-    });
-    setCreateOpen(false);
-    resetForm();
+    try {
+      await createMutation.mutateAsync({
+        code: code.trim(),
+        ...reward,
+        audience_type: audienceType,
+        audience_ids: audienceIds,
+        max_per_user: mpu,
+        max_total: mt,
+        expires_at: expiresAt.trim() ? new Date(expiresAt).toISOString() : null,
+      });
+      setCreateOpen(false);
+      resetForm();
+    } catch {
+      // onError 已 toast
+    }
   };
 
   const handleBatch = async () => {
+    if (!canSubmitAudience) {
+      toast.error(t("error.redeemCodeInvalidAudience"));
+      return;
+    }
     const reward = buildRewardPayload();
+    if (!reward) {
+      toast.error(
+        rewardType === "credits"
+          ? t("error.invalidCreditAmount")
+          : t("error.redeemCodeInvalidReward")
+      );
+      return;
+    }
     const count = Number(batchCount);
-    if (!reward || !canSubmitAudience || !Number.isInteger(count) || count < 1 || count > 200) return;
-    const mpu = parseOptionalInt(maxPerUser);
-    if (mpu === undefined) return;
+    if (!Number.isInteger(count) || count < 1 || count > 200) {
+      toast.error(t("adminRedeemCodes.invalidBatchCount"));
+      return;
+    }
 
-    await batchMutation.mutateAsync({
-      count,
-      ...reward,
-      audience_type: audienceType,
-      audience_ids: audienceIds,
-      max_per_user: mpu,
-      expires_at: expiresAt.trim() ? new Date(expiresAt).toISOString() : null,
-    });
-    setBatchOpen(false);
-    resetForm();
+    try {
+      // 批量码由后端固定为一码一次
+      await batchMutation.mutateAsync({
+        count,
+        ...reward,
+        audience_type: audienceType,
+        audience_ids: audienceIds,
+        expires_at: expiresAt.trim() ? new Date(expiresAt).toISOString() : null,
+      });
+      setBatchOpen(false);
+      resetForm();
+    } catch {
+      // onError 已 toast
+    }
   };
 
   const audienceForm = (
@@ -386,13 +455,40 @@ export function RedeemCodesContent() {
     <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
-          {isLoading ? (
-            <Skeleton className="h-4 w-28" />
-          ) : (
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("adminRedeemCodes.totalEntries", { count: total })}
-            </CardTitle>
-          )}
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            {isLoading ? (
+              <Skeleton className="h-4 w-16" />
+            ) : (
+              <CardTitle className="text-sm font-medium text-muted-foreground shrink-0">
+                {t("adminRedeemCodes.totalEntries", { count: total })}
+              </CardTitle>
+            )}
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder={t("adminRedeemCodes.searchPlaceholder")}
+              className="w-[200px]"
+            />
+            <Select
+              value={listedFilter}
+              onValueChange={(v) => {
+                setListedFilter(v as "all" | "true" | "false");
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("adminRedeemCodes.filterAll")}</SelectItem>
+                <SelectItem value="true">{t("adminRedeemCodes.filterListed")}</SelectItem>
+                <SelectItem value="false">{t("adminRedeemCodes.filterDelisted")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex gap-2">
             <Dialog
               open={batchOpen}
@@ -418,10 +514,6 @@ export function RedeemCodesContent() {
                   </div>
                   {rewardForm}
                   {audienceForm}
-                  <div className="space-y-2">
-                    <Label>{t("adminRedeemCodes.maxPerUser")}</Label>
-                    <Input value={maxPerUser} onChange={(e) => setMaxPerUser(e.target.value)} placeholder="1" />
-                  </div>
                   <div className="space-y-2">
                     <Label>{t("adminRedeemCodes.expiresAt")}</Label>
                     <Input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
@@ -483,34 +575,6 @@ export function RedeemCodesContent() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder={t("adminRedeemCodes.searchPlaceholder")}
-              className="sm:max-w-xs"
-            />
-            <Select
-              value={listedFilter}
-              onValueChange={(v) => {
-                setListedFilter(v as "all" | "true" | "false");
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="sm:w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("adminRedeemCodes.filterAll")}</SelectItem>
-                <SelectItem value="true">{t("adminRedeemCodes.filterListed")}</SelectItem>
-                <SelectItem value="false">{t("adminRedeemCodes.filterDelisted")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {isLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
@@ -553,7 +617,7 @@ export function RedeemCodesContent() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {statusBadges(item, t).map((b) => (
-                            <Badge key={b.key} variant={b.variant}>
+                            <Badge key={b.key} variant={b.variant} className={b.className}>
                               {b.label}
                             </Badge>
                           ))}
@@ -561,25 +625,26 @@ export function RedeemCodesContent() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {item.listed ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={delistMutation.isPending}
-                              onClick={() => delistMutation.mutate(item.id)}
-                            >
-                              {t("adminRedeemCodes.delist")}
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={relistMutation.isPending}
-                              onClick={() => relistMutation.mutate(item.id)}
-                            >
-                              {t("adminRedeemCodes.relist")}
-                            </Button>
-                          )}
+                          {!item.is_exhausted &&
+                            (item.listed ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={delistMutation.isPending}
+                                onClick={() => delistMutation.mutate(item.id)}
+                              >
+                                {t("adminRedeemCodes.delist")}
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={relistMutation.isPending}
+                                onClick={() => relistMutation.mutate(item.id)}
+                              >
+                                {t("adminRedeemCodes.relist")}
+                              </Button>
+                            ))}
                           <Button
                             size="sm"
                             variant="ghost"

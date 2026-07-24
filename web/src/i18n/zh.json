@@ -752,7 +752,8 @@
     "redeemCodeInvalidReward": "奖励配置无效",
     "redeemCodeInvalidAudience": "受众配置无效",
     "redeemCodeInvalidFormat": "兑换码格式无效：仅允许中文、英文和数字",
-    "redeemCodeNotFound": "兑换码未找到"
+    "redeemCodeNotFound": "兑换码未找到",
+    "redeemCodeExhausted": "已兑完的兑换码不可上下架"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1077,13 +1078,15 @@
   },
   "adminRedeemCodes": {
     "title": "兑换码",
-    "totalEntries": "共 {{count}} 个兑换码",
+    "totalEntries": "共 {{count}} 个",
     "create": "创建兑换码",
     "createTitle": "创建兑换码",
     "batchCreate": "批量生成",
     "batchCreateTitle": "批量生成兑换码",
     "batchCount": "生成数量",
-    "batchHint": "每码 5 位英文，强制总次数为 1；默认 10，上限 200",
+    "batchHint": "每码 5 位英文，一码仅可兑换一次；默认 10，上限 200",
+    "invalidLimits": "次数限制须为正整数，或留空表示不限制",
+    "invalidBatchCount": "生成数量须为 1–200 的整数",
     "created": "兑换码已创建",
     "batchCreated": "已生成 {{count}} 个兑换码",
     "delisted": "已下架",
@@ -1115,7 +1118,7 @@
     "statusActive": "可兑",
     "statusDelisted": "下架",
     "statusExpired": "过期",
-    "statusExhausted": "用尽",
+    "statusExhausted": "已兑",
     "delist": "下架",
     "relist": "上架",
     "viewRedemptions": "记录",

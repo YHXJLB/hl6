@@ -267,11 +267,6 @@ export function BrandContent() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">{t("adminBrand.title")}</h2>
-        <p className="text-sm text-muted-foreground">{t("adminBrand.subtitle")}</p>
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle>{t("adminBrand.nameLabel")}</CardTitle>

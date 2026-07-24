@@ -24,10 +24,6 @@ export default function AdminAuditPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t("audit.title")}</h1>
-        <p className="text-muted-foreground">{t("audit.description")}</p>
-      </div>
       <AuditSummaryBar />
 
       <Tabs

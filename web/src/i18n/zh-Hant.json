@@ -752,7 +752,8 @@
     "redeemCodeInvalidReward": "獎勵設定無效",
     "redeemCodeInvalidAudience": "受眾設定無效",
     "redeemCodeInvalidFormat": "兌換碼格式無效：僅允許中文、英文和數字",
-    "redeemCodeNotFound": "兌換碼未找到"
+    "redeemCodeNotFound": "兌換碼未找到",
+    "redeemCodeExhausted": "已兌完的兌換碼不可上下架"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1077,13 +1078,15 @@
   },
   "adminRedeemCodes": {
     "title": "兌換碼",
-    "totalEntries": "共 {{count}} 個兌換碼",
+    "totalEntries": "共 {{count}} 個",
     "create": "建立兌換碼",
     "createTitle": "建立兌換碼",
     "batchCreate": "批量產生",
     "batchCreateTitle": "批量產生兌換碼",
     "batchCount": "Count",
-    "batchHint": "Each code is 5 English letters, max_total forced to 1; default 10, max 200",
+    "batchHint": "每碼 5 位英文，一碼僅可兌換一次；預設 10，上限 200",
+    "invalidLimits": "次數限制須為正整數，或留空表示不限制",
+    "invalidBatchCount": "產生數量須為 1–200 的整數",
     "created": "兌換碼已建立",
     "batchCreated": "已產生 {{count}} 個兌換碼",
     "delisted": "已下架",
@@ -1115,7 +1118,7 @@
     "statusActive": "可兌",
     "statusDelisted": "下架",
     "statusExpired": "過期",
-    "statusExhausted": "用盡",
+    "statusExhausted": "已兌",
     "delist": "下架",
     "relist": "上架",
     "viewRedemptions": "記錄",

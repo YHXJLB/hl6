@@ -92,7 +92,6 @@ type batchRedeemBody struct {
 	TargetGroupID *uint    `json:"target_group_id"`
 	AudienceType  string   `json:"audience_type" binding:"required"`
 	AudienceIDs   []uint   `json:"audience_ids"`
-	MaxPerUser    *int     `json:"max_per_user"`
 	ExpiresAt     *string  `json:"expires_at"`
 }
 
@@ -328,17 +327,14 @@ func (h *RedeemCodeHandler) AdminBatchCreate(c *gin.Context) {
 		return
 	}
 
-	if err := validateMaxCount(body.MaxPerUser); err != nil {
-		response.ErrorWithKey(c, http.StatusBadRequest, "invalid max_per_user", "error.invalidRequestBody")
-		return
-	}
-
 	expiresAt, err := parseOptionalExpires(body.ExpiresAt)
 	if err != nil {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid expires_at", "error.invalidRequestBody")
 		return
 	}
 
+	// 批量码固定一码一次，忽略客户端传入的次数配置
+	once := 1
 	batchID := uuid.New().String()
 	template := model.RedeemCode{
 		RewardType:    body.RewardType,
@@ -346,7 +342,7 @@ func (h *RedeemCodeHandler) AdminBatchCreate(c *gin.Context) {
 		TargetGroupID: targetGroupID,
 		AudienceType:  body.AudienceType,
 		AudienceIDs:   audienceIDs,
-		MaxPerUser:    body.MaxPerUser,
+		MaxPerUser:    &once,
 		ExpiresAt:     expiresAt,
 		CreatedBy:     admin.ID,
 	}
@@ -420,6 +416,10 @@ func (h *RedeemCodeHandler) AdminDelist(c *gin.Context) {
 		response.OK(c, redeemCodeView(code))
 		return
 	}
+	if code.MaxTotal != nil && code.RedeemedCount >= *code.MaxTotal {
+		response.ErrorWithKey(c, http.StatusBadRequest, "exhausted redeem code", "error.redeemCodeExhausted")
+		return
+	}
 	if err := h.repo.UpdateRedeemCodeListed(code.ID, false, false); err != nil {
 		response.ErrorWithKey(c, http.StatusInternalServerError, "database error", "error.databaseError")
 		return
@@ -435,7 +435,20 @@ func (h *RedeemCodeHandler) AdminRelist(c *gin.Context) {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid id", "error.invalidRequestBody")
 		return
 	}
-	code, err := h.repo.RelistRedeemCode(uint(id))
+	code, err := h.repo.FindRedeemCodeByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.NotFound(c, "error.redeemCodeNotFound")
+			return
+		}
+		response.ErrorWithKey(c, http.StatusInternalServerError, "database error", "error.databaseError")
+		return
+	}
+	if code.MaxTotal != nil && code.RedeemedCount >= *code.MaxTotal {
+		response.ErrorWithKey(c, http.StatusBadRequest, "exhausted redeem code", "error.redeemCodeExhausted")
+		return
+	}
+	code, err = h.repo.RelistRedeemCode(uint(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.NotFound(c, "error.redeemCodeNotFound")

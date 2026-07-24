@@ -752,7 +752,8 @@
     "redeemCodeInvalidReward": "Invalid reward configuration",
     "redeemCodeInvalidAudience": "Invalid audience configuration",
     "redeemCodeInvalidFormat": "兌換コード形式が無効です：中国語・英字・数字のみ",
-    "redeemCodeNotFound": "Redeem code not found"
+    "redeemCodeNotFound": "Redeem code not found",
+    "redeemCodeExhausted": "使い切った引き換えコードは掲載/非掲載できません"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1077,13 +1078,15 @@
   },
   "adminRedeemCodes": {
     "title": "Redeem Codes",
-    "totalEntries": "{{count}} redeem codes",
+    "totalEntries": "全 {{count}} 件",
     "create": "Create code",
     "createTitle": "Create redeem code",
     "batchCreate": "Batch generate",
     "batchCreateTitle": "Batch generate codes",
     "batchCount": "Count",
-    "batchHint": "Each code is 5 English letters, max_total forced to 1; default 10, max 200",
+    "batchHint": "各コードは英字5文字・1回のみ使用可；デフォルト10、上限200",
+    "invalidLimits": "回数制限は正の整数、または空欄で無制限",
+    "invalidBatchCount": "生成数は 1〜200 の整数である必要があります",
     "created": "Redeem code created",
     "batchCreated": "Generated {{count}} redeem codes",
     "delisted": "Delisted",
@@ -1115,7 +1118,7 @@
     "statusActive": "Redeemable",
     "statusDelisted": "Delisted",
     "statusExpired": "Expired",
-    "statusExhausted": "Exhausted",
+    "statusExhausted": "使用済",
     "delist": "Delist",
     "relist": "Relist",
     "viewRedemptions": "Records",

@@ -47,11 +47,6 @@ export default function AdminAuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t("auditLogs.title")}</h1>
-        <p className="text-muted-foreground">{t("auditLogs.subtitle")}</p>
-      </div>
-
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           {isLoading ? (

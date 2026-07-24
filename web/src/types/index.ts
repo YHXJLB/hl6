@@ -318,7 +318,6 @@ export interface BatchRedeemCodePayload {
   target_group_id?: number;
   audience_type: RedeemAudienceType;
   audience_ids?: number[];
-  max_per_user?: number | null;
   expires_at?: string | null;
 }
 

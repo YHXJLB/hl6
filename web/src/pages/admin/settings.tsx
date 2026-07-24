@@ -127,10 +127,6 @@ export default function AdminSettingsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("adminSettings.title")}</h1>
-          <p className="text-muted-foreground">{t("adminSettings.subtitle")}</p>
-        </div>
         <Card>
           <CardHeader>
             <Skeleton className="h-5 w-40" />
@@ -152,11 +148,6 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t("adminSettings.title")}</h1>
-        <p className="text-muted-foreground">{t("adminSettings.subtitle")}</p>
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle>{t("adminSettings.oidcTitle")}</CardTitle>

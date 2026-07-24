@@ -193,7 +193,12 @@ func (r *Repository) ListRedeemCodes(page, perPage int, filter RedeemCodeListFil
 		return nil, 0, err
 	}
 	err := q.Preload("TargetGroup").
-		Order("id DESC").
+		// 可兑在前 → 已下架 → 已兑完；同组内按创建时间新→旧
+		Order(`(CASE
+			WHEN listed = false THEN 1
+			WHEN max_total IS NOT NULL AND redeemed_count >= max_total THEN 2
+			ELSE 0
+		END) ASC, created_at DESC`).
 		Offset((page - 1) * perPage).
 		Limit(perPage).
 		Find(&codes).Error
@@ -379,8 +384,9 @@ func generateBatchCode() (string, error) {
 
 // CreateRedeemCodeBatch 事务内生成一批一次性码；碰撞重试，失败整批回滚。
 func (r *Repository) CreateRedeemCodeBatch(template model.RedeemCode, count int, batchID string) ([]model.RedeemCode, error) {
-	maxTotal := 1
-	template.MaxTotal = &maxTotal
+	once := 1
+	template.MaxTotal = &once
+	template.MaxPerUser = &once
 	template.BatchID = &batchID
 	template.Listed = true
 

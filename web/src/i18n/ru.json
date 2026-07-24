@@ -752,7 +752,8 @@
     "redeemCodeInvalidReward": "Invalid reward configuration",
     "redeemCodeInvalidAudience": "Invalid audience configuration",
     "redeemCodeInvalidFormat": "Неверный формат кода: только китайские символы, буквы и цифры",
-    "redeemCodeNotFound": "Redeem code not found"
+    "redeemCodeNotFound": "Redeem code not found",
+    "redeemCodeExhausted": "Исчерпанные коды нельзя публиковать или снимать"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",
@@ -1077,13 +1078,15 @@
   },
   "adminRedeemCodes": {
     "title": "Redeem Codes",
-    "totalEntries": "{{count}} redeem codes",
+    "totalEntries": "Всего {{count}}",
     "create": "Create code",
     "createTitle": "Create redeem code",
     "batchCreate": "Batch generate",
     "batchCreateTitle": "Batch generate codes",
     "batchCount": "Count",
-    "batchHint": "Each code is 5 English letters, max_total forced to 1; default 10, max 200",
+    "batchHint": "Каждый код — 5 латинских букв, одноразовый; по умолчанию 10, макс. 200",
+    "invalidLimits": "Лимиты должны быть положительными целыми, или оставьте пустым для безлимита",
+    "invalidBatchCount": "Количество должно быть целым числом от 1 до 200",
     "created": "Redeem code created",
     "batchCreated": "Generated {{count}} redeem codes",
     "delisted": "Delisted",
@@ -1115,7 +1118,7 @@
     "statusActive": "Redeemable",
     "statusDelisted": "Delisted",
     "statusExpired": "Expired",
-    "statusExhausted": "Exhausted",
+    "statusExhausted": "Использован",
     "delist": "Delist",
     "relist": "Relist",
     "viewRedemptions": "Records",
