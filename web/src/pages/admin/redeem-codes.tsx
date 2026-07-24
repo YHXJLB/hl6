@@ -50,6 +50,12 @@ import { toast } from "sonner";
 const MAX_CREDIT_AMOUNT = 100000;
 const REDEEM_CODE_MAX_LEN = 64;
 
+function minDateTimeLocal(): string {
+  return new Date().toISOString().slice(0, 16);
+}
+
+type SelectedUser = { id: number; name: string; email: string };
+
 /** 与后端 NormalizeRedeemCode 一致：仅 Unicode 字母/数字，无空白与特殊字符 */
 function isValidRedeemCodeInput(raw: string): boolean {
   const s = raw.trim();
@@ -147,7 +153,7 @@ export function RedeemCodesContent() {
   const [creditAmount, setCreditAmount] = useState("10");
   const [targetGroupId, setTargetGroupId] = useState<string>("");
   const [audienceType, setAudienceType] = useState<RedeemAudienceType>("all");
-  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [debouncedUserSearch, setDebouncedUserSearch] = useState("");
@@ -193,7 +199,7 @@ export function RedeemCodesContent() {
     setCreditAmount("10");
     setTargetGroupId("");
     setAudienceType("all");
-    setSelectedUserIds([]);
+    setSelectedUsers([]);
     setSelectedGroupIds([]);
     setUserSearch("");
     setMaxPerUser("1");
@@ -203,7 +209,11 @@ export function RedeemCodesContent() {
   };
 
   const audienceIds =
-    audienceType === "users" ? selectedUserIds : audienceType === "groups" ? selectedGroupIds : [];
+    audienceType === "users"
+      ? selectedUsers.map((u) => u.id)
+      : audienceType === "groups"
+        ? selectedGroupIds
+        : [];
 
   const buildRewardPayload = () => {
     if (rewardType === "credits") {
@@ -226,8 +236,17 @@ export function RedeemCodesContent() {
 
   const canSubmitAudience =
     audienceType === "all" ||
-    (audienceType === "users" && selectedUserIds.length > 0) ||
+    (audienceType === "users" && selectedUsers.length > 0) ||
     (audienceType === "groups" && selectedGroupIds.length > 0);
+
+  const validateExpiresAt = (): boolean => {
+    if (!expiresAt.trim()) return true;
+    if (new Date(expiresAt) <= new Date()) {
+      toast.error(t("error.redeemCodeInvalidExpires"));
+      return false;
+    }
+    return true;
+  };
 
   const handleCreate = async () => {
     if (!code.trim()) {
@@ -257,6 +276,7 @@ export function RedeemCodesContent() {
       toast.error(t("adminRedeemCodes.invalidLimits"));
       return;
     }
+    if (!validateExpiresAt()) return;
 
     try {
       await createMutation.mutateAsync({
@@ -294,6 +314,7 @@ export function RedeemCodesContent() {
       toast.error(t("adminRedeemCodes.invalidBatchCount"));
       return;
     }
+    if (!validateExpiresAt()) return;
 
     try {
       // 批量码由后端固定为一码一次
@@ -319,7 +340,7 @@ export function RedeemCodesContent() {
           value={audienceType}
           onValueChange={(v) => {
             setAudienceType(v as RedeemAudienceType);
-            setSelectedUserIds([]);
+            setSelectedUsers([]);
             setSelectedGroupIds([]);
           }}
         >
@@ -337,6 +358,23 @@ export function RedeemCodesContent() {
       {audienceType === "users" && (
         <div className="space-y-2">
           <Label>{t("adminNotifications.selectUsers")}</Label>
+          {selectedUsers.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {selectedUsers.map((user) => (
+                <Badge key={user.id} variant="secondary" className="gap-1 pr-1">
+                  <span className="max-w-[140px] truncate">{user.name}</span>
+                  <button
+                    type="button"
+                    className="rounded-sm hover:bg-muted-foreground/20 p-0.5 leading-none"
+                    aria-label={`${t("common.cancel")} ${user.name}`}
+                    onClick={() => setSelectedUsers((prev) => prev.filter((u) => u.id !== user.id))}
+                  >
+                    ×
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
           <Input
             placeholder={t("adminUsers.searchPlaceholder")}
             value={userSearch}
@@ -347,10 +385,17 @@ export function RedeemCodesContent() {
               <label key={user.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-accent cursor-pointer text-sm">
                 <input
                   type="checkbox"
-                  checked={selectedUserIds.includes(user.id)}
+                  checked={selectedUsers.some((u) => u.id === user.id)}
                   onChange={(e) => {
-                    if (e.target.checked) setSelectedUserIds((prev) => [...prev, user.id]);
-                    else setSelectedUserIds((prev) => prev.filter((id) => id !== user.id));
+                    if (e.target.checked) {
+                      setSelectedUsers((prev) =>
+                        prev.some((u) => u.id === user.id)
+                          ? prev
+                          : [...prev, { id: user.id, name: user.name, email: user.email }]
+                      );
+                    } else {
+                      setSelectedUsers((prev) => prev.filter((u) => u.id !== user.id));
+                    }
                   }}
                 />
                 <span>{user.name}</span>
@@ -358,9 +403,9 @@ export function RedeemCodesContent() {
               </label>
             ))}
           </div>
-          {selectedUserIds.length > 0 && (
+          {selectedUsers.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              {t("adminNotifications.selectedCount", { count: selectedUserIds.length })}
+              {t("adminNotifications.selectedCount", { count: selectedUsers.length })}
             </p>
           )}
         </div>
@@ -442,7 +487,12 @@ export function RedeemCodesContent() {
       </div>
       <div className="space-y-2">
         <Label>{t("adminRedeemCodes.expiresAt")}</Label>
-        <Input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+        <Input
+          type="datetime-local"
+          value={expiresAt}
+          min={minDateTimeLocal()}
+          onChange={(e) => setExpiresAt(e.target.value)}
+        />
       </div>
     </>
   );
@@ -516,7 +566,12 @@ export function RedeemCodesContent() {
                   {audienceForm}
                   <div className="space-y-2">
                     <Label>{t("adminRedeemCodes.expiresAt")}</Label>
-                    <Input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+                    <Input
+                      type="datetime-local"
+                      value={expiresAt}
+                      min={minDateTimeLocal()}
+                      onChange={(e) => setExpiresAt(e.target.value)}
+                    />
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => { setBatchOpen(false); resetForm(); }}>

@@ -44,6 +44,6 @@ func NewHandlers(cfg *config.Config, repo *repository.Repository, dnsOps *servic
 		NotificationAdmin: handler.NewNotificationAdminHandler(repo, sseBroker, cfg),
 		Audit:             handler.NewAuditHandler(repo, audit.auditSvc, audit.subSvc, dnsOps, audit.enqueue, audit.notif, audit.auditLog),
 		SSEBroker:         sseBroker,
-		RedeemCode:        handler.NewRedeemCodeHandler(repo),
+		RedeemCode:        handler.NewRedeemCodeHandler(repo, audit.auditLog),
 	}
 }

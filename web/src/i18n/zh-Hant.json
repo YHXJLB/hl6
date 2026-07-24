@@ -226,7 +226,7 @@
   },
   "adminUsers": {
     "pageTitle": "運營",
-    "pageSubtitle": "管理使用者、群組、通知和積分",
+    "pageSubtitle": "管理使用者、群組、通知、積分和兌換碼",
     "tabUsers": "使用者",
     "tabCredits": "積分",
     "tabGroups": "使用者群組",
@@ -753,7 +753,8 @@
     "redeemCodeInvalidAudience": "受眾設定無效",
     "redeemCodeInvalidFormat": "兌換碼格式無效：僅允許中文、英文和數字",
     "redeemCodeNotFound": "兌換碼未找到",
-    "redeemCodeExhausted": "已兌完的兌換碼不可上下架"
+    "redeemCodeExhausted": "已兌完的兌換碼不可上下架",
+    "redeemCodeInvalidExpires": "有效期須為未來時間"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",

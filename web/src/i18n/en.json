@@ -226,7 +226,7 @@
   },
   "adminUsers": {
     "pageTitle": "Operations",
-    "pageSubtitle": "Manage users, groups, notifications and credits",
+    "pageSubtitle": "Manage users, groups, notifications, credits and redeem codes",
     "tabUsers": "Users",
     "tabCredits": "Credits",
     "tabGroups": "User Groups",
@@ -753,7 +753,8 @@
     "redeemCodeInvalidAudience": "Invalid audience configuration",
     "redeemCodeInvalidFormat": "Invalid redeem code format: only Chinese, letters, and digits allowed",
     "redeemCodeNotFound": "Redeem code not found",
-    "redeemCodeExhausted": "Exhausted redeem codes cannot be listed or delisted"
+    "redeemCodeExhausted": "Exhausted redeem codes cannot be listed or delisted",
+    "redeemCodeInvalidExpires": "Expiry must be in the future"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",

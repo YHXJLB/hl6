@@ -226,7 +226,7 @@
   },
   "adminUsers": {
     "pageTitle": "运营",
-    "pageSubtitle": "管理用户、用户组、通知和积分",
+    "pageSubtitle": "管理用户、用户组、通知、积分和兑换码",
     "tabUsers": "用户",
     "tabCredits": "积分",
     "tabGroups": "用户组",
@@ -753,7 +753,8 @@
     "redeemCodeInvalidAudience": "受众配置无效",
     "redeemCodeInvalidFormat": "兑换码格式无效：仅允许中文、英文和数字",
     "redeemCodeNotFound": "兑换码未找到",
-    "redeemCodeExhausted": "已兑完的兑换码不可上下架"
+    "redeemCodeExhausted": "已兑完的兑换码不可上下架",
+    "redeemCodeInvalidExpires": "有效期须为未来时间"
   },
   "dnsProviders": {
     "cloudflare": "Cloudflare",

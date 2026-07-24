@@ -36,15 +36,8 @@ func (r *Repository) CreateRedeemCode(code *model.RedeemCode) error {
 // CreateRedeemCodeIfNoConflict 在事务内用 advisory lock 串行化同串创建，检查生效唯一性后插入。
 func (r *Repository) CreateRedeemCodeIfNoConflict(code *model.RedeemCode) error {
 	return r.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Exec("SELECT pg_advisory_xact_lock(?)", redeemCodeLockKey(code.CodeNormalized)).Error; err != nil {
+		if err := ensureNoActiveConflictLocked(tx, code.CodeNormalized, 0); err != nil {
 			return err
-		}
-		conflict, err := countActiveConflict(tx, code.CodeNormalized, 0)
-		if err != nil {
-			return err
-		}
-		if conflict > 0 {
-			return ErrRedeemCodeConflict
 		}
 		return tx.Create(code).Error
 	})
@@ -96,6 +89,21 @@ func redeemCodeLockKey(normalized string) int64 {
 	return int64(h.Sum64())
 }
 
+// ensureNoActiveConflictLocked 在事务内对归一化码加 advisory lock 并检查生效唯一性。
+func ensureNoActiveConflictLocked(tx *gorm.DB, normalized string, excludeID uint) error {
+	if err := tx.Exec("SELECT pg_advisory_xact_lock(?)", redeemCodeLockKey(normalized)).Error; err != nil {
+		return err
+	}
+	conflict, err := countActiveConflict(tx, normalized, excludeID)
+	if err != nil {
+		return err
+	}
+	if conflict > 0 {
+		return ErrRedeemCodeConflict
+	}
+	return nil
+}
+
 // RelistRedeemCode 重新上架；若上架后会进入「生效中」集合则校验唯一性（排除自身）。
 func (r *Repository) RelistRedeemCode(id uint) (*model.RedeemCode, error) {
 	err := r.Transaction(func(tx *gorm.DB) error {
@@ -110,15 +118,8 @@ func (r *Repository) RelistRedeemCode(id uint) (*model.RedeemCode, error) {
 
 		// 上架后若会进入生效集合，需保证归一化串唯一
 		if !exhausted {
-			if err := tx.Exec("SELECT pg_advisory_xact_lock(?)", redeemCodeLockKey(code.CodeNormalized)).Error; err != nil {
+			if err := ensureNoActiveConflictLocked(tx, code.CodeNormalized, code.ID); err != nil {
 				return err
-			}
-			conflict, err := countActiveConflict(tx, code.CodeNormalized, code.ID)
-			if err != nil {
-				return err
-			}
-			if conflict > 0 {
-				return ErrRedeemCodeConflict
 			}
 		}
 
@@ -406,18 +407,11 @@ func (r *Repository) CreateRedeemCodeBatch(template model.RedeemCode, count int,
 				if _, exists := used[s]; exists {
 					continue
 				}
-				var conflict int64
-				now := time.Now()
-				if err := tx.Model(&model.RedeemCode{}).
-					Where("code_normalized = ?", s).
-					Where("listed = ?", true).
-					Where("(expires_at IS NULL OR expires_at > ?)", now).
-					Where("(max_total IS NULL OR redeemed_count < max_total)").
-					Count(&conflict).Error; err != nil {
+				if err := ensureNoActiveConflictLocked(tx, s, 0); err != nil {
+					if errors.Is(err, ErrRedeemCodeConflict) {
+						continue
+					}
 					return err
-				}
-				if conflict > 0 {
-					continue
 				}
 				codeStr = s
 				used[s] = struct{}{}

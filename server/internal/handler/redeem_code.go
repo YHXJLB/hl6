@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,15 +15,26 @@ import (
 	"hl6-server/internal/helpers"
 	"hl6-server/internal/model"
 	"hl6-server/internal/repository"
+	"hl6-server/internal/service"
 	"hl6-server/pkg/response"
 )
 
 type RedeemCodeHandler struct {
-	repo *repository.Repository
+	repo     *repository.Repository
+	auditLog *service.AuditLogService
 }
 
-func NewRedeemCodeHandler(repo *repository.Repository) *RedeemCodeHandler {
-	return &RedeemCodeHandler{repo: repo}
+func NewRedeemCodeHandler(repo *repository.Repository, auditLog *service.AuditLogService) *RedeemCodeHandler {
+	return &RedeemCodeHandler{repo: repo, auditLog: auditLog}
+}
+
+func (h *RedeemCodeHandler) auditRedeemCode(c *gin.Context, adminID uint, action string, resourceID uint, details map[string]any) {
+	if h.auditLog == nil {
+		return
+	}
+	if err := h.auditLog.RecordFromHTTP(c, adminID, action, "redeem_code", resourceID, details); err != nil {
+		log.Printf("audit log failed: action=%s resource_id=%d err=%v", action, resourceID, err)
+	}
 }
 
 // Redeem POST /credits/redeem — 用户兑换；业务失败一律笼统错误。
@@ -53,6 +65,7 @@ func (h *RedeemCodeHandler) Redeem(c *gin.Context) {
 			response.ErrorWithKey(c, http.StatusBadRequest, "redeem code unavailable", "error.redeemCodeUnavailable")
 			return
 		}
+		log.Printf("redeem code internal error: user_id=%d code=%q err=%v", user.ID, normalized, err)
 		response.ErrorWithKey(c, http.StatusBadRequest, "redeem code unavailable", "error.redeemCodeUnavailable")
 		return
 	}
@@ -104,6 +117,16 @@ func parseOptionalExpires(raw *string) (*time.Time, error) {
 		return nil, err
 	}
 	return &t, nil
+}
+
+func validateFutureExpires(t *time.Time) error {
+	if t == nil {
+		return nil
+	}
+	if !t.After(time.Now()) {
+		return errors.New("expires_at must be in the future")
+	}
+	return nil
 }
 
 func validateMaxCount(v *int) error {
@@ -260,6 +283,10 @@ func (h *RedeemCodeHandler) AdminCreate(c *gin.Context) {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid expires_at", "error.invalidRequestBody")
 		return
 	}
+	if err := validateFutureExpires(expiresAt); err != nil {
+		response.ErrorWithKey(c, http.StatusBadRequest, "expires_at must be in the future", "error.redeemCodeInvalidExpires")
+		return
+	}
 
 	code := model.RedeemCode{
 		CodeNormalized: normalized,
@@ -289,6 +316,11 @@ func (h *RedeemCodeHandler) AdminCreate(c *gin.Context) {
 			code.TargetGroup = g
 		}
 	}
+	h.auditRedeemCode(c, admin.ID, "admin_create_redeem_code", code.ID, map[string]any{
+		"code_display":  code.CodeDisplay,
+		"reward_type":   code.RewardType,
+		"audience_type": code.AudienceType,
+	})
 	response.Created(c, redeemCodeView(&code))
 }
 
@@ -332,6 +364,10 @@ func (h *RedeemCodeHandler) AdminBatchCreate(c *gin.Context) {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid expires_at", "error.invalidRequestBody")
 		return
 	}
+	if err := validateFutureExpires(expiresAt); err != nil {
+		response.ErrorWithKey(c, http.StatusBadRequest, "expires_at must be in the future", "error.redeemCodeInvalidExpires")
+		return
+	}
 
 	// 批量码固定一码一次，忽略客户端传入的次数配置
 	once := 1
@@ -361,6 +397,11 @@ func (h *RedeemCodeHandler) AdminBatchCreate(c *gin.Context) {
 	for i := range created {
 		items = append(items, redeemCodeView(&created[i]))
 	}
+	h.auditRedeemCode(c, admin.ID, "admin_batch_create_redeem_codes", 0, map[string]any{
+		"batch_id":    batchID,
+		"count":       len(created),
+		"reward_type": body.RewardType,
+	})
 	response.Created(c, gin.H{
 		"batch_id": batchID,
 		"items":    items,
@@ -398,6 +439,12 @@ func (h *RedeemCodeHandler) AdminList(c *gin.Context) {
 
 // AdminDelist POST /admin/redeem-codes/:id/delist
 func (h *RedeemCodeHandler) AdminDelist(c *gin.Context) {
+	admin := ctxutil.GetUser(c)
+	if admin == nil {
+		response.ErrorWithKey(c, http.StatusUnauthorized, "unauthorized", "error.unauthorized")
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid id", "error.invalidRequestBody")
@@ -425,11 +472,20 @@ func (h *RedeemCodeHandler) AdminDelist(c *gin.Context) {
 		return
 	}
 	code.Listed = false
+	h.auditRedeemCode(c, admin.ID, "admin_delist_redeem_code", code.ID, map[string]any{
+		"code_display": code.CodeDisplay,
+	})
 	response.OK(c, redeemCodeView(code))
 }
 
 // AdminRelist POST /admin/redeem-codes/:id/relist
 func (h *RedeemCodeHandler) AdminRelist(c *gin.Context) {
+	admin := ctxutil.GetUser(c)
+	if admin == nil {
+		response.ErrorWithKey(c, http.StatusUnauthorized, "unauthorized", "error.unauthorized")
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid id", "error.invalidRequestBody")
@@ -448,6 +504,8 @@ func (h *RedeemCodeHandler) AdminRelist(c *gin.Context) {
 		response.ErrorWithKey(c, http.StatusBadRequest, "exhausted redeem code", "error.redeemCodeExhausted")
 		return
 	}
+	now := time.Now()
+	clearExpires := code.ExpiresAt != nil && !code.ExpiresAt.After(now)
 	code, err = h.repo.RelistRedeemCode(uint(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -461,6 +519,10 @@ func (h *RedeemCodeHandler) AdminRelist(c *gin.Context) {
 		response.ErrorWithKey(c, http.StatusInternalServerError, "database error", "error.databaseError")
 		return
 	}
+	h.auditRedeemCode(c, admin.ID, "admin_relist_redeem_code", code.ID, map[string]any{
+		"code_display":    code.CodeDisplay,
+		"cleared_expires": clearExpires,
+	})
 	response.OK(c, redeemCodeView(code))
 }
 
