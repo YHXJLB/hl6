@@ -3,15 +3,14 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RedeemCodeBox } from "@/components/credits/redeem-code-box";
 import { api, getErrorMessage } from "@/lib/api";
 import { useCredits, useDailyCheckinStatus, useTransactions } from "@/hooks/use-credits";
-import { useRedeemCode } from "@/hooks/use-redeem-codes";
 import { useReferrals } from "@/hooks/use-referrals";
 import { toast } from "sonner";
 import { useDocumentTitle } from "@/hooks/use-document-title";
-import { Coins, CalendarCheck, CheckCircle2, Copy, Ticket } from "lucide-react";
+import { Coins, CalendarCheck, CheckCircle2, Copy } from "lucide-react";
 
 export default function CreditsPage() {
   const queryClient = useQueryClient();
@@ -23,8 +22,6 @@ export default function CreditsPage() {
   const { data: refData, isLoading: refLoading } = useReferrals(refPage, 10);
   const { t } = useTranslation();
   useDocumentTitle(t("credits.title"));
-  const [redeemInput, setRedeemInput] = useState("");
-  const redeemMutation = useRedeemCode();
 
   const claimMutation = useMutation({
     mutationFn: api.claimDailyCheckin,
@@ -51,14 +48,6 @@ export default function CreditsPage() {
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
     toast.success(t("common.copied"));
-  };
-
-  const handleRedeem = () => {
-    const code = redeemInput.trim();
-    if (!code) return;
-    redeemMutation.mutate(code, {
-      onSuccess: () => setRedeemInput(""),
-    });
   };
 
   return (
@@ -128,40 +117,7 @@ export default function CreditsPage() {
         )}
       </div>
 
-      <Card>
-        <CardContent className="px-6 py-6">
-          <div className="flex items-start gap-4">
-            <div className="rounded-xl bg-brand-muted p-3 shrink-0">
-              <Ticket className="h-5 w-5 text-brand" />
-            </div>
-            <div className="flex-1 space-y-3">
-              <div>
-                <p className="text-sm font-semibold">{t("credits.redeemTitle")}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">{t("credits.redeemDesc")}</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  value={redeemInput}
-                  onChange={(e) => setRedeemInput(e.target.value.toUpperCase())}
-                  placeholder={t("credits.redeemPlaceholder")}
-                  className="font-mono tracking-wider sm:max-w-xs"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleRedeem();
-                  }}
-                  disabled={redeemMutation.isPending}
-                />
-                <Button
-                  onClick={handleRedeem}
-                  disabled={!redeemInput.trim() || redeemMutation.isPending}
-                  size="default"
-                >
-                  {redeemMutation.isPending ? t("credits.redeeming") : t("credits.redeemSubmit")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <RedeemCodeBox />
 
       {referralEnabled && (
         <Card>

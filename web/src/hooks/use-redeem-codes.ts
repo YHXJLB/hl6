@@ -1,32 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api, getErrorMessage } from "@/lib/api";
 import type { BatchRedeemCodePayload, CreateRedeemCodePayload, RedeemCodeResult } from "@/types";
 
+export function formatRedeemSuccessMessage(data: RedeemCodeResult, t: TFunction): string {
+  if (data.reward_type === "credits") {
+    return t("credits.redeemSuccessCredits", { amount: data.credit_amount });
+  }
+  return data.group_changed
+    ? t("credits.redeemSuccessGroup", { group: data.target_group_name })
+    : t("credits.redeemSuccessGroupUnchanged", { group: data.target_group_name });
+}
+
 export function useRedeemCode() {
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: (code: string) => api.redeemCode(code),
-    onSuccess: (res) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["credits"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["me"] });
-
-      const data = res.data as RedeemCodeResult;
-      if (data.reward_type === "credits") {
-        toast.success(t("credits.redeemSuccessCredits", { amount: data.credit_amount }));
-      } else {
-        toast.success(
-          data.group_changed
-            ? t("credits.redeemSuccessGroup", { group: data.target_group_name })
-            : t("credits.redeemSuccessGroupUnchanged", { group: data.target_group_name })
-        );
-      }
     },
-    onError: (err) => toast.error(getErrorMessage(err, t)),
   });
 }
 
