@@ -256,8 +256,48 @@
   50%, 100% { opacity: 0; }
 }
 
+@keyframes redeem-char-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.88);
+  }
+  60% {
+    transform: translateY(-1px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes redeem-glow-pulse {
+  0%, 100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes redeem-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
 .animate-redeem-caret {
   animation: redeem-caret-blink 1s steps(1, end) infinite;
+}
+
+.animate-redeem-char-enter {
+  animation: redeem-char-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-redeem-glow {
+  animation: redeem-glow-pulse 3s ease-in-out infinite;
 }
 
 /* 兑换码槽位：可横向滚动但不显示滚动条 */
@@ -267,4 +307,18 @@
 }
 .redeem-slots-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.redeem-panel-shimmer {
+  background-image: linear-gradient(
+    105deg,
+    transparent 38%,
+    color-mix(in oklch, var(--color-brand) 18%, transparent) 50%,
+    transparent 62%
+  );
+  background-size: 220% 100%;
+}
+
+.redeem-panel-shimmer-active {
+  animation: redeem-shimmer 4.5s ease-in-out infinite;
 }

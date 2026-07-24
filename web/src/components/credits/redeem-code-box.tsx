@@ -57,12 +57,19 @@ function SuccessBorder({ active, onComplete }: { active: boolean; onComplete: ()
   }, [active, size.w, size.h]);
 
   const inset = 2;
-  const radius = 14;
+  const radius = 16;
 
   return (
     <div ref={wrapRef} className="pointer-events-none absolute inset-0 z-10" aria-hidden>
       {size.w > 0 && (
         <svg className="h-full w-full overflow-visible" width={size.w} height={size.h}>
+          <defs>
+            <linearGradient id="redeem-success-stroke" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="oklch(0.72 0.17 145)" />
+              <stop offset="50%" stopColor="oklch(0.65 0.19 155)" />
+              <stop offset="100%" stopColor="oklch(0.58 0.2 165)" />
+            </linearGradient>
+          </defs>
           <rect
             ref={rectRef}
             x={inset}
@@ -72,8 +79,8 @@ function SuccessBorder({ active, onComplete }: { active: boolean; onComplete: ()
             rx={radius}
             ry={radius}
             fill="none"
-            stroke="rgb(34 197 94)"
-            strokeWidth={3}
+            stroke="url(#redeem-success-stroke)"
+            strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
             opacity={active ? 1 : 0}
@@ -81,6 +88,18 @@ function SuccessBorder({ active, onComplete }: { active: boolean; onComplete: ()
         </svg>
       )}
     </div>
+  );
+}
+
+function CornerOrnament({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "pointer-events-none absolute h-5 w-5 border-brand/25",
+        className
+      )}
+    />
   );
 }
 
@@ -96,11 +115,7 @@ export function RedeemCodeBox() {
 
   const chars = Array.from(value);
   const hasInput = chars.length > 0;
-  // 超过 5 位时末尾多留一个空位（多一条空横线给光标）
-  const slotCount =
-    chars.length > MIN_LINE_COUNT
-      ? chars.length + 1
-      : MIN_LINE_COUNT;
+  const slotCount = Math.max(MIN_LINE_COUNT, chars.length);
   const busy = redeemMutation.isPending || feedback === "success";
   const caretIndex = chars.length;
 
@@ -142,7 +157,6 @@ export function RedeemCodeBox() {
     });
   };
 
-  // 新增字符后滚到最右侧，保证最新一位可见
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -150,156 +164,169 @@ export function RedeemCodeBox() {
   }, [chars.length]);
 
   return (
-    <div className="space-y-3">
-      <div>
-        <p className="text-sm font-semibold">{t("credits.redeemTitle")}</p>
-        <p className="mt-0.5 text-sm text-muted-foreground">{t("credits.redeemDesc")}</p>
-      </div>
-
       <div
-        role="group"
-        className={cn(
-          "relative min-h-[168px] cursor-text select-none overflow-hidden rounded-2xl border transition-[background-color,border-color,box-shadow] duration-300",
-          feedback === "error"
-            ? "animate-[redeem-shake_0.45s_ease-in-out] border-red-400 bg-red-100 dark:border-red-500 dark:bg-red-950/70"
-            : feedback === "success"
-              ? "border-transparent bg-brand-muted"
-              : "border-brand/15 bg-brand-muted hover:border-brand/25"
-        )}
-        onMouseDown={(e) => {
-          // 避免点击框体时按坐标把光标插到字符串中间，导致 Backspace 删不掉
-          if (e.target === e.currentTarget || (e.target as HTMLElement).closest("[data-redeem-slots]")) {
-            e.preventDefault();
-            focusInput();
-          }
-        }}
-      >
-        <SuccessBorder active={feedback === "success"} onComplete={handleSuccessComplete} />
-
-        {/* 视觉上隐藏：避免全屏透明 input 把点击位置映射成光标 */}
-        <input
-          ref={inputRef}
-          value={value}
-          onChange={(e) => {
-            if (feedback === "error") setFeedback("idle");
-            const next = normalizeRedeemInput(e.target.value);
-            setValue(next);
-            requestAnimationFrame(() => {
-              const el = inputRef.current;
-              if (!el) return;
-              const len = el.value.length;
-              el.setSelectionRange(len, len);
-            });
-          }}
-          onFocus={() => {
-            setFocused(true);
-            const el = inputRef.current;
-            if (!el) return;
-            const len = el.value.length;
-            el.setSelectionRange(len, len);
-          }}
-          onBlur={() => setFocused(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            role="group"
+            className={cn(
+              "relative cursor-text select-none overflow-hidden rounded-2xl border transition-[background-color,border-color,box-shadow] duration-300",
+              feedback === "error"
+                ? "animate-[redeem-shake_0.45s_ease-in-out] border-red-400/80 bg-red-50/80 shadow-[0_0_0_1px_rgba(239,68,68,0.15)] dark:border-red-500/70 dark:bg-red-950/40"
+                : feedback === "success"
+                  ? "border-emerald-500/30 bg-emerald-50/50 shadow-[0_0_32px_-8px_rgba(16,185,129,0.35)] dark:border-emerald-500/25 dark:bg-emerald-950/20"
+                  : "border-border/70 bg-card/80 shadow-sm"
+            )}
+            onMouseDown={(e) => {
+              if ((e.target as HTMLElement).closest("button")) return;
               e.preventDefault();
-              handleRedeem();
-              return;
-            }
-            // 显式处理删除，避免光标不在末尾时 Backspace 无效
-            if (e.key === "Backspace") {
-              e.preventDefault();
-              if (feedback === "error") setFeedback("idle");
-              setValue((prev) => Array.from(prev).slice(0, -1).join(""));
-              return;
-            }
-            if (e.key === "Delete") {
-              e.preventDefault();
-              if (feedback === "error") setFeedback("idle");
-              setValue((prev) => Array.from(prev).slice(0, -1).join(""));
-            }
-          }}
-          disabled={busy}
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          aria-label={t("credits.redeemPlaceholder")}
-          className="sr-only"
-        />
-
-        <div className="relative z-0 flex min-h-[168px] flex-col justify-center px-5 pb-14 pt-10 sm:px-8">
-          <div
-            ref={scrollRef}
-            data-redeem-slots
-            className="redeem-slots-scroll w-full overflow-x-auto overflow-y-hidden"
+              focusInput();
+            }}
           >
             <div
-              className="mx-auto flex w-max min-w-full items-end justify-center gap-3 px-1 sm:gap-4"
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_0%,color-mix(in_oklch,var(--color-brand)_14%,transparent),transparent_65%)] opacity-70"
+            />
+            <CornerOrnament className="left-3 top-3 border-l-2 border-t-2 rounded-tl-sm" />
+            <CornerOrnament className="right-3 top-3 border-r-2 border-t-2 rounded-tr-sm" />
+            <CornerOrnament className="bottom-3 left-3 border-b-2 border-l-2 rounded-bl-sm" />
+            <CornerOrnament className="right-3 bottom-3 border-b-2 border-r-2 rounded-br-sm" />
+
+            <SuccessBorder active={feedback === "success"} onComplete={handleSuccessComplete} />
+
+            <input
+              ref={inputRef}
+              value={value}
+              onChange={(e) => {
+                if (feedback === "error") setFeedback("idle");
+                const next = normalizeRedeemInput(e.target.value);
+                setValue(next);
+                requestAnimationFrame(() => {
+                  const el = inputRef.current;
+                  if (!el) return;
+                  const len = el.value.length;
+                  el.setSelectionRange(len, len);
+                });
+              }}
+              onFocus={() => {
+                setFocused(true);
+                const el = inputRef.current;
+                if (!el) return;
+                const len = el.value.length;
+                el.setSelectionRange(len, len);
+              }}
+              onBlur={() => setFocused(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleRedeem();
+                  return;
+                }
+                if (e.key === "Backspace") {
+                  e.preventDefault();
+                  if (feedback === "error") setFeedback("idle");
+                  setValue((prev) => Array.from(prev).slice(0, -1).join(""));
+                  return;
+                }
+                if (e.key === "Delete") {
+                  e.preventDefault();
+                  if (feedback === "error") setFeedback("idle");
+                  setValue((prev) => Array.from(prev).slice(0, -1).join(""));
+                }
+              }}
+              disabled={busy}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              aria-label={t("credits.redeemPlaceholder")}
+              className="sr-only"
+            />
+
+            <div className="relative z-0 flex min-h-[200px] flex-col justify-center px-4 pb-6 pt-10 sm:px-6 sm:pb-7 sm:pt-12">
+              {!hasInput && (
+                <p className="pointer-events-none absolute inset-x-0 top-4 text-center text-xs text-muted-foreground">
+                  {t("credits.redeemPlaceholder")}
+                </p>
+              )}
+
+              <div
+                ref={scrollRef}
+                data-redeem-slots
+                className="redeem-slots-scroll w-full overflow-x-auto overflow-y-hidden"
+              >
+                <div className="mx-auto flex w-max min-w-full items-center justify-center gap-2.5 px-1 sm:gap-3">
+                  {Array.from({ length: slotCount }).map((_, i) => {
+                    const lit = i < chars.length;
+                    const showCaret = focused && !busy && !lit && caretIndex === i;
+                    const isActiveSlot = lit || showCaret;
+
+                    return (
+                      <div key={i} className="flex w-11 shrink-0 flex-col items-center gap-3 sm:w-12">
+                        <span
+                          className={cn(
+                            "relative flex h-11 items-center justify-center font-mono text-3xl font-semibold tracking-wide sm:h-12 sm:text-4xl",
+                            lit
+                              ? feedback === "error"
+                                ? "text-red-700 dark:text-red-300"
+                                : "text-foreground"
+                              : ""
+                          )}
+                        >
+                          {lit && (
+                            <span key={`${i}-${chars[i]}`} className="animate-redeem-char-enter inline-block">
+                              {chars[i]}
+                            </span>
+                          )}
+                          {showCaret && (
+                            <span className="absolute inset-y-1 left-1/2 w-0.5 -translate-x-1/2 animate-redeem-caret rounded-full bg-brand shadow-[0_0_6px_color-mix(in_oklch,var(--color-brand)_60%,transparent)]" />
+                          )}
+                        </span>
+
+                        <span
+                          className={cn(
+                            "h-1 w-full rounded-full transition-all duration-300",
+                            isActiveSlot
+                              ? feedback === "error"
+                                ? "bg-red-500/70"
+                                : "bg-brand/70 shadow-[0_0_8px_color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+                              : "bg-brand/25 dark:bg-brand/30"
+                          )}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                "relative z-20 overflow-hidden border-t border-border/50 transition-all duration-300",
+                hasInput ? "max-h-16 opacity-100" : "max-h-0 opacity-0 border-transparent"
+              )}
             >
-              {Array.from({ length: slotCount }).map((_, i) => {
-                const lit = i < chars.length;
-                const showCaret = focused && !busy && caretIndex === i;
-                return (
-                  <div key={i} className="flex w-9 shrink-0 flex-col items-center gap-2.5 sm:w-10">
-                    <span
-                      className={cn(
-                        "relative flex h-9 items-center justify-center font-mono text-2xl font-semibold tracking-wide sm:text-3xl",
-                        lit
-                          ? feedback === "error"
-                            ? "text-red-700 dark:text-red-300"
-                            : "text-foreground"
-                          : "text-transparent"
-                      )}
-                    >
-                      {chars[i] ?? "·"}
-                      {showCaret && (
-                        <span className="absolute inset-y-1 left-1/2 w-0.5 -translate-x-1/2 animate-redeem-caret rounded-full bg-brand" />
-                      )}
-                    </span>
-                    <span
-                      className={cn(
-                        "h-1 w-full rounded-full transition-all duration-200",
-                        lit
-                          ? feedback === "error"
-                            ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.45)]"
-                            : "bg-brand shadow-[0_0_10px_color-mix(in_oklch,var(--color-brand)_40%,transparent)]"
-                          : showCaret
-                            ? "bg-brand/55"
-                            : "bg-brand/20 dark:bg-brand/30"
-                      )}
-                    />
-                  </div>
-                );
-              })}
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRedeem();
+                }}
+                disabled={busy}
+                className={cn(
+                  "flex w-full items-center justify-center gap-2 px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors",
+                  "disabled:pointer-events-none disabled:opacity-60",
+                  feedback === "error"
+                    ? "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600"
+                    : feedback === "success"
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white"
+                      : "bg-gradient-to-r from-brand to-[var(--color-brand-gradient-end)] text-brand-foreground hover:brightness-105"
+                )}
+              >
+                {redeemMutation.isPending ? t("credits.redeeming") : t("credits.redeemSubmit")}
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           </div>
-        </div>
-
-        {hasInput && (
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRedeem();
-            }}
-            disabled={busy}
-            className={cn(
-              "absolute bottom-4 right-4 z-30 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium",
-              "animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
-              "disabled:pointer-events-none disabled:opacity-60",
-              feedback === "error"
-                ? "bg-red-600 text-white hover:bg-red-700"
-                : "bg-brand text-brand-foreground hover:bg-brand/90"
-            )}
-          >
-            {redeemMutation.isPending ? t("credits.redeeming") : t("credits.redeemSubmit")}
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-    </div>
   );
 }
