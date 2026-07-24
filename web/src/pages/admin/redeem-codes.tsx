@@ -151,7 +151,7 @@ export function RedeemCodesContent() {
   const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [debouncedUserSearch, setDebouncedUserSearch] = useState("");
-  const [maxPerUser, setMaxPerUser] = useState("");
+  const [maxPerUser, setMaxPerUser] = useState("1");
   const [maxTotal, setMaxTotal] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [batchCount, setBatchCount] = useState("10");
@@ -196,7 +196,7 @@ export function RedeemCodesContent() {
     setSelectedUserIds([]);
     setSelectedGroupIds([]);
     setUserSearch("");
-    setMaxPerUser("");
+    setMaxPerUser("1");
     setMaxTotal("");
     setExpiresAt("");
     setBatchCount("10");
@@ -551,7 +551,7 @@ export function RedeemCodesContent() {
                       value={code}
                       onChange={(e) => setCode(e.target.value.toUpperCase())}
                       className="font-mono tracking-wider"
-                      placeholder="TEST10"
+                      placeholder="HOULANGCLOUD"
                     />
                     <p className="text-xs text-muted-foreground">{t("adminRedeemCodes.codeHint")}</p>
                   </div>
