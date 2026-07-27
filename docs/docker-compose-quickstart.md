@@ -2,14 +2,24 @@
 
 本文用于生产/准生产环境快速拉起 HL6 全栈（`app + postgres`），使用镜像：
 
-- `registry.houlang.cloud/houlangcloud/hl6/app:latest`
+- `ghcr.io/yhxjlb/hl6:latest`（GitHub Container Registry，私有包，拉取前需先 `docker login ghcr.io`）
+
+## 0. 登录 ghcr.io（私有镜像包，拉取前必须）
+
+`ghcr.io/yhxjlb/hl6` 是私有包，未登录直接 `pull` 会报 401。先用有权限的 token 登录（可用你的 GitHub PAT，或仅含 `read:packages` 的细粒度 token）：
+
+```bash
+docker login ghcr.io -u YHXJLB -p <TOKEN>
+```
+
+> 建议为服务器单独建一个**细粒度 token**，只勾 `read:packages`，不要使用全权限 PAT。
 
 ## 1. 准备 `docker-compose.prod.yml`
 
 ```yaml
 services:
   app:
-    image: registry.houlang.cloud/houlangcloud/hl6/app:latest
+    image: ${IMAGE:-ghcr.io/yhxjlb/hl6:latest}
     container_name: hl6-app
     restart: unless-stopped
     depends_on:
@@ -57,6 +67,9 @@ volumes:
 ```dotenv
 # 访问端口（宿主机）
 APP_PORT=8080
+
+# 镜像（默认 ghcr.io/yhxjlb/hl6:latest；如需使用其它镜像源可在此覆盖）
+IMAGE=ghcr.io/yhxjlb/hl6:latest
 
 # 公网访问地址（同域部署建议填写）
 APP_URL=https://hl6.example.com
