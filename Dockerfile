@@ -1,7 +1,10 @@
-# 基础镜像可通过 build-arg 切换：
+# 基础镜像统一在首个 FROM 之前声明（BuildKit 规则：用于 FROM 的 ARG 必须是全局的）
 #   - 默认使用私有镜像源（服务器本地构建，速度快且预装 libwebp）
 #   - GitHub Actions 等无法访问私有源时，传入公共 Docker Hub 镜像即可
 ARG NODE_IMAGE=mirror.houlang.cloud/dh/node:22-alpine
+ARG GO_IMAGE=mirror.houlang.cloud/dh/golang:1.25.8-alpine
+ARG FINAL_IMAGE=mirror.houlang.cloud/dh/alpine:3.22
+
 FROM ${NODE_IMAGE} AS web-builder
 
 WORKDIR /src/web
@@ -18,7 +21,6 @@ ENV APP_GIT_COMMIT=$APP_GIT_COMMIT
 
 RUN npm run build
 
-ARG GO_IMAGE=mirror.houlang.cloud/dh/golang:1.25.8-alpine
 FROM ${GO_IMAGE} AS server-builder
 
 WORKDIR /src
@@ -35,7 +37,6 @@ RUN go mod download
 COPY server/ ./
 RUN CGO_ENABLED=1 GOOS=linux go build -o /out/hl6-server ./cmd/server
 
-ARG FINAL_IMAGE=mirror.houlang.cloud/dh/alpine:3.22
 FROM ${FINAL_IMAGE}
 
 # libwebp 为运行期动态链接依赖（chai2010/webp CGO），缺失会导致容器启动即崩溃

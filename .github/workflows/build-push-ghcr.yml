@@ -40,7 +40,7 @@ jobs:
             ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
           build-args: |
             NODE_IMAGE=node:22-alpine
-            GO_IMAGE=golang:1.25.8-alpine
+            GO_IMAGE=golang:1.25-alpine
             FINAL_IMAGE=alpine:3.22
             GOPROXY=https://proxy.golang.org,direct
           cache-from: type=gha
