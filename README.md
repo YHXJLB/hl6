@@ -1,6 +1,7 @@
 # HL6
 
 HL6 是一个域名/子域名管理平台。用户可以在已注册域名下认领并管理子域名、维护 DNS 记录，并基于积分规则控制访问；管理员可进行全局管理。
+fork from https://git.houlang.cloud/houlangcloud/hl6
 
 ## 核心能力
 
