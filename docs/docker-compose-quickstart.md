@@ -2,17 +2,26 @@
 
 本文用于生产/准生产环境快速拉起 HL6 全栈（`app + postgres`），使用镜像：
 
-- `ghcr.io/yhxjlb/hl6:latest`（GitHub Container Registry，私有包，拉取前需先 `docker login ghcr.io`）
+- `ghcr.io/yhxjlb/hl6:latest`（GitHub Container Registry，**公开包**，可匿名 `docker pull`，无需登录）
 
-## 0. 登录 ghcr.io（私有镜像包，拉取前必须）
+## 0. 关于 ghcr.io 登录（公开包无需登录）
 
-`ghcr.io/yhxjlb/hl6` 是私有包，未登录直接 `pull` 会报 401。先用有权限的 token 登录（可用你的 GitHub PAT，或仅含 `read:packages` 的细粒度 token）：
+镜像包已设为**公开（public）**，在服务器上拉取时**不需要** `docker login`，直接 `docker pull ghcr.io/yhxjlb/hl6:latest` 即可。
+
+仅在以下场景才需要登录：
+
+- 你要向 ghcr.io **推送**自己的镜像（需要 `write:packages` 权限的 token）；
+- 或镜像包被改回了私有（此时拉取需 `read:packages` 权限的 token）。
+
+登录命令（如确实需要）：
 
 ```bash
 docker login ghcr.io -u YHXJLB -p <TOKEN>
 ```
 
-> 建议为服务器单独建一个**细粒度 token**，只勾 `read:packages`，不要使用全权限 PAT。
+> **把包改成公开（GitHub 限制）**：GitHub 目前**不提供**修改包可见性的 REST API（官方文档已无此端点，相关 PATCH 调用一律返回 404）。所以只能到 Web UI 手动点一次：
+> 进入 GitHub → 右上角头像 → **Your packages** → `hl6` → **Package settings** → **Change visibility** → 选 **Public** → **Save**。
+> 设成公开后，上面的匿名拉取立即生效。仓库 `YHXJLB/hl6` 已经是 public，与包可见性相互独立，互不影响。
 
 ## 1. 准备 `docker-compose.prod.yml`
 
