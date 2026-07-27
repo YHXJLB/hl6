@@ -1,4 +1,8 @@
-FROM mirror.houlang.cloud/dh/node:22-alpine AS web-builder
+# 基础镜像可通过 build-arg 切换：
+#   - 默认使用私有镜像源（服务器本地构建，速度快且预装 libwebp）
+#   - GitHub Actions 等无法访问私有源时，传入公共 Docker Hub 镜像即可
+ARG NODE_IMAGE=mirror.houlang.cloud/dh/node:22-alpine
+FROM ${NODE_IMAGE} AS web-builder
 
 WORKDIR /src/web
 
@@ -14,11 +18,13 @@ ENV APP_GIT_COMMIT=$APP_GIT_COMMIT
 
 RUN npm run build
 
-FROM mirror.houlang.cloud/dh/golang:1.25.8-alpine AS server-builder
+ARG GO_IMAGE=mirror.houlang.cloud/dh/golang:1.25.8-alpine
+FROM ${GO_IMAGE} AS server-builder
 
 WORKDIR /src
 
-RUN apk add --no-cache build-base
+# build-base 提供 C 工具链；libwebp-dev 提供 chai2010/webp (CGO) 所需的头文件与静态库
+RUN apk add --no-cache build-base libwebp-dev
 
 ARG GOPROXY=https://goproxy.cn,direct
 ENV GOPROXY=$GOPROXY
@@ -29,9 +35,11 @@ RUN go mod download
 COPY server/ ./
 RUN CGO_ENABLED=1 GOOS=linux go build -o /out/hl6-server ./cmd/server
 
-FROM mirror.houlang.cloud/dh/alpine:3.22
+ARG FINAL_IMAGE=mirror.houlang.cloud/dh/alpine:3.22
+FROM ${FINAL_IMAGE}
 
-RUN apk add --no-cache ca-certificates tzdata libgcc
+# libwebp 为运行期动态链接依赖（chai2010/webp CGO），缺失会导致容器启动即崩溃
+RUN apk add --no-cache ca-certificates tzdata libgcc libwebp
 
 WORKDIR /app
 

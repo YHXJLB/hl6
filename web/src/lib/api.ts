@@ -47,6 +47,8 @@ import type {
   AuditScenario,
   AuditRuleTestResult,
   SubdomainScan,
+  SubdomainClaimRule,
+  SubdomainClaimRuleTestResult,
 } from "@/types";
 import { buildPaginatedQuery } from "@/lib/api-query";
 
@@ -631,4 +633,22 @@ export const api = {
     return request<PaginatedResponse<SubdomainScan[]>>(path);
   },
   adminGetAuditScan: (id: number) => request<ApiResponse<SubdomainScan>>(`/admin/audit/scans/${id}`),
+
+  // ---- Subdomain Claim Rules (子域创建规则) ----
+  adminListClaimRules: () => request<ApiResponse<SubdomainClaimRule[]>>("/admin/subdomain-claim-rules"),
+  adminCreateClaimRule: (data: Record<string, unknown>) =>
+    request<ApiResponse<SubdomainClaimRule>>("/admin/subdomain-claim-rules", { method: "POST", body: JSON.stringify(data) }),
+  adminUpdateClaimRule: (id: number, data: Record<string, unknown>) =>
+    request<ApiResponse<SubdomainClaimRule>>(`/admin/subdomain-claim-rules/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  adminDeleteClaimRule: (id: number) =>
+    request<ApiResponse<{ message: string }>>(`/admin/subdomain-claim-rules/${id}`, { method: "DELETE" }),
+  adminToggleClaimRule: (id: number) =>
+    request<ApiResponse<{ enabled: boolean }>>(`/admin/subdomain-claim-rules/${id}/toggle`, { method: "PUT" }),
+  adminTestClaimRule: (data: { subdomain_name: string; domain_id: number; domain_name: string; rule?: SubdomainClaimRule; rule_id?: number }) =>
+    request<ApiResponse<{ matched: boolean; matched_rule: { rule_id: number; rule_name: string; action: string; message: string } | null }>>("/admin/subdomain-claim-rules/test", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  checkClaimRules: (name: string, domainId: number, domainName: string) =>
+    request<ApiResponse<SubdomainClaimRuleTestResult>>(`/subdomains/check-rules?name=${encodeURIComponent(name)}&domain_id=${domainId}&domain_name=${encodeURIComponent(domainName)}`),
 };

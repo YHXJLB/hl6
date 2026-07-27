@@ -193,6 +193,7 @@ func runSchemaMigrations(db *gorm.DB) error {
 			&model.UserReferral{},
 			&model.RedeemCode{},
 			&model.RedeemCodeRedemption{},
+			&model.SubdomainClaimRule{},
 		); err != nil {
 			return err
 		}

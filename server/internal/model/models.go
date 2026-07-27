@@ -336,6 +336,43 @@ func (a *DNSProviderAccount) ToView() DNSProviderAccountView {
 	}
 }
 
+// SubdomainClaimRule 子域创建规则——在用户申请/认领子域时对输入名称进行检测。
+type SubdomainClaimRule struct {
+	ID             uint        `json:"id" gorm:"primaryKey"`
+	Name           string      `json:"name" gorm:"not null"`
+	Enabled        bool        `json:"enabled" gorm:"default:true;index"`
+	Description    string      `json:"description" gorm:"type:text"`
+	MatchType      string      `json:"match_type" gorm:"type:varchar(16);not null"` // keyword / regex
+	Keywords       StringSlice `json:"keywords" gorm:"type:jsonb;not null;default:'[]'"`
+	KeywordLogic   string      `json:"keyword_logic" gorm:"type:varchar(8);not null;default:any"` // any / all
+	Pattern        string      `json:"pattern" gorm:"type:text"` // 正则表达式
+	CaseSensitive  bool        `json:"case_sensitive" gorm:"default:false"`
+	Action         string      `json:"action" gorm:"type:varchar(16);not null;default:reject"` // reject / reject_notify
+	RejectMessage  string      `json:"reject_message" gorm:"type:text;not null;default:''"` // 拒绝时向用户展示的消息模板
+	ScopeDomainIDs UintSlice   `json:"scope_domain_ids" gorm:"type:jsonb;not null;default:'[]'"` // 空数组=全局生效
+	HitCount       int         `json:"hit_count" gorm:"not null;default:0"` // 命中计数
+	LastHitAt      *time.Time  `json:"last_hit_at,omitempty"`
+	LastHitFQDN    string      `json:"last_hit_fqdn,omitempty"`
+	CreatedBy      uint        `json:"created_by" gorm:"not null"`
+	UpdatedBy      uint        `json:"updated_by"`
+	CreatedAt      time.Time   `json:"created_at"`
+	UpdatedAt      time.Time   `json:"updated_at"`
+}
+
+// SubdomainClaimRule 常量
+const (
+	ClaimRuleMatchKeyword = "keyword"
+	ClaimRuleMatchRegex   = "regex"
+
+	ClaimRuleActionReject       = "reject"
+	ClaimRuleActionRejectNotify = "reject_notify"
+
+	ClaimRuleKeywordLogicAny = "any"
+	ClaimRuleKeywordLogicAll = "all"
+)
+
+func (SubdomainClaimRule) TableName() string { return "subdomain_claim_rules" }
+
 func (DNSProviderAccount) TableName() string {
 	return "dns_provider_accounts"
 }

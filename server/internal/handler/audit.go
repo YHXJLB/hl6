@@ -774,8 +774,8 @@ func normalizeDNSRecordTypes(types []string) []string {
 		return nil
 	}
 	allowed := map[string]string{
-		"a": "A", "aaaa": "AAAA", "cname": "CNAME", "txt": "TXT",
-		"A": "A", "AAAA": "AAAA", "CNAME": "CNAME", "TXT": "TXT",
+		"a": "A", "aaaa": "AAAA", "cname": "CNAME", "txt": "TXT", "ns": "NS", "mx": "MX",
+		"A": "A", "AAAA": "AAAA", "CNAME": "CNAME", "TXT": "TXT", "NS": "NS", "MX": "MX",
 	}
 	out := make([]string, 0, len(types))
 	seen := make(map[string]struct{}, len(types))

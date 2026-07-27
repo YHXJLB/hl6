@@ -23,16 +23,18 @@ type Handlers struct {
 	Notification      *handler.NotificationHandler
 	NotificationAdmin *handler.NotificationAdminHandler
 	Audit             *handler.AuditHandler
+	ClaimRule         *handler.ClaimRuleHandler
 	SSEBroker         *handler.SSEBroker
 	RedeemCode        *handler.RedeemCodeHandler
 }
 
 func NewHandlers(cfg *config.Config, repo *repository.Repository, dnsOps *service.DNSOperationService, migSvc *service.DomainMigrationService, sseBroker *handler.SSEBroker, audit auditStack) *Handlers {
+	claimRuleEngine := service.NewClaimRuleEngine(repo)
 	return &Handlers{
 		Auth:              handler.NewAuthHandler(repo),
 		OIDC:              handler.NewOIDCHandler(repo, cfg),
 		Domain:            handler.NewDomainHandler(repo, dnsOps),
-		Subdomain:         handler.NewSubdomainHandler(repo, sseBroker, dnsOps, audit.enqueue, audit.notif, audit.subSvc, audit.auditLog),
+		Subdomain:         handler.NewSubdomainHandler(repo, sseBroker, dnsOps, audit.enqueue, audit.notif, audit.subSvc, audit.auditLog, claimRuleEngine),
 		DNS:               handler.NewDNSHandler(repo, sseBroker, dnsOps, audit.enqueue),
 		Credit:            handler.NewCreditHandler(repo),
 		Admin:             handler.NewAdminHandler(repo, cfg, dnsOps),
@@ -43,6 +45,7 @@ func NewHandlers(cfg *config.Config, repo *repository.Repository, dnsOps *servic
 		Notification:      handler.NewNotificationHandler(repo, sseBroker),
 		NotificationAdmin: handler.NewNotificationAdminHandler(repo, sseBroker, cfg),
 		Audit:             handler.NewAuditHandler(repo, audit.auditSvc, audit.subSvc, dnsOps, audit.enqueue, audit.notif, audit.auditLog),
+		ClaimRule:         handler.NewClaimRuleHandler(repo, claimRuleEngine),
 		SSEBroker:         sseBroker,
 		RedeemCode:        handler.NewRedeemCodeHandler(repo, audit.auditLog),
 	}

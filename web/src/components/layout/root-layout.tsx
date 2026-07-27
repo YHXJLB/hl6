@@ -40,6 +40,7 @@ import {
   ShieldCheck,
   ClipboardList,
   SlidersHorizontal,
+  ShieldAlert,
   ChevronDown,
   Menu,
 } from "lucide-react";
@@ -83,6 +84,7 @@ const adminItems: NavItem[] = [
   { labelKey: "nav.adminUsers", href: "/admin/users", icon: Users },
   { labelKey: "nav.adminDomains", href: "/admin/domains", icon: Settings2 },
   { labelKey: "nav.audit", href: "/admin/audit", icon: ShieldCheck },
+  { labelKey: "nav.claimRules", href: "/admin/claim-rules", icon: ShieldAlert },
   { labelKey: "nav.auditLogs", href: "/admin/audit-logs", icon: ClipboardList },
   { labelKey: "nav.adminSettings", href: "/admin/settings", icon: SlidersHorizontal },
 ];

@@ -59,7 +59,7 @@ export interface Subdomain {
 export interface DNSRecord {
   id: number;
   subdomain_id: number;
-  type: "A" | "CNAME" | "AAAA" | "TXT";
+  type: "A" | "CNAME" | "AAAA" | "TXT" | "NS" | "MX";
   name: string;
   content: string;
   ttl: number;
@@ -658,4 +658,38 @@ export interface AdminConfigPayload {
 
 export interface OIDCStatusPayload extends AdminOIDCRuntime {
   setup_allowed: boolean;
+}
+
+// ---- Subdomain Claim Rule (子域创建规则) ----
+
+export interface SubdomainClaimRule {
+  id: number;
+  name: string;
+  enabled: boolean;
+  description?: string;
+  match_type: "keyword" | "regex";
+  keywords: string[];
+  keyword_logic: "any" | "all";
+  pattern: string;
+  case_sensitive: boolean;
+  action: "reject" | "reject_notify";
+  reject_message: string;
+  scope_domain_ids: number[];
+  hit_count: number;
+  last_hit_at?: string | null;
+  last_hit_fqdn?: string;
+  created_by: number;
+  updated_by: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubdomainClaimRuleTestResult {
+  allowed: boolean;
+  rule: {
+    rule_id: number;
+    rule_name: string;
+    action: string;
+    message: string;
+  } | null;
 }

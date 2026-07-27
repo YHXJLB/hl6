@@ -28,10 +28,11 @@ type SubdomainHandler struct {
 	notif     *service.NotificationService
 	subSvc    *service.SubdomainService
 	auditLog  *service.AuditLogService
+	ruleEngine *service.ClaimRuleEngine
 }
 
-func NewSubdomainHandler(repo *repository.Repository, broker *SSEBroker, ops *service.DNSOperationService, enqueue *service.AuditEnqueueService, notif *service.NotificationService, subSvc *service.SubdomainService, auditLog *service.AuditLogService) *SubdomainHandler {
-	return &SubdomainHandler{repo: repo, broker: broker, ops: ops, enqueue: enqueue, notif: notif, subSvc: subSvc, auditLog: auditLog}
+func NewSubdomainHandler(repo *repository.Repository, broker *SSEBroker, ops *service.DNSOperationService, enqueue *service.AuditEnqueueService, notif *service.NotificationService, subSvc *service.SubdomainService, auditLog *service.AuditLogService, ruleEngine *service.ClaimRuleEngine) *SubdomainHandler {
+	return &SubdomainHandler{repo: repo, broker: broker, ops: ops, enqueue: enqueue, notif: notif, subSvc: subSvc, auditLog: auditLog, ruleEngine: ruleEngine}
 }
 
 func (h *SubdomainHandler) List(c *gin.Context) {
@@ -121,6 +122,32 @@ func (h *SubdomainHandler) Claim(c *gin.Context) {
 	if err != nil || !domain.IsActive {
 		response.ErrorWithKey(c, http.StatusNotFound, "domain not found or inactive", "error.domainNotFoundOrInactive")
 		return
+	}
+
+	// 子域创建规则检测（在域名确认后执行）
+	if h.ruleEngine != nil {
+		matchResult, ruleErr := h.ruleEngine.CheckSubdomainName(c.Request.Context(), body.DomainID, body.Name, domain.Name)
+		if ruleErr != nil {
+			response.ErrorWithKey(c, http.StatusInternalServerError, "failed to check claim rules", "error.claimRuleCheckFailed")
+			return
+		}
+		if matchResult != nil {
+			// 增加命中计数
+			_ = h.repo.IncrementClaimRuleHit(matchResult.RuleID, body.Name+"."+domain.Name)
+			// 返回拒绝信息
+			c.JSON(http.StatusForbidden, response.Response{
+				Code:    -1,
+				Message: matchResult.Message,
+				Data: gin.H{
+					"error_category":   "claim_rule_violation",
+					"rule_id":          matchResult.RuleID,
+					"rule_name":        matchResult.RuleName,
+					"action":           matchResult.Action,
+					"reject_message":   matchResult.Message,
+				},
+			})
+			return
+		}
 	}
 
 	// Check group access and get group-specific cost

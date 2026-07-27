@@ -16,6 +16,7 @@ import AdminAuditLogsPage from "@/pages/admin/audit-logs";
 import AdminAuditPage from "@/pages/admin/audit";
 
 import AdminSettingsPage from "@/pages/admin/settings";
+import AdminClaimRulesPage from "@/pages/admin/claim-rules";
 import NotFoundPage from "@/pages/not-found";
 
 function ProtectedRoute() {
@@ -92,6 +93,7 @@ export default function App() {
             <Route path="/admin/audit-logs" element={<AdminAuditLogsPage />} />
             <Route path="/admin/groups" element={<Navigate to="/admin/users?tab=groups" replace />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
+            <Route path="/admin/claim-rules" element={<AdminClaimRulesPage />} />
             <Route path="/admin/notifications" element={<Navigate to="/admin/users?tab=notifications" replace />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />

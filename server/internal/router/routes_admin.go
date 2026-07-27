@@ -51,6 +51,14 @@ func registerAdminRoutes(api *gin.RouterGroup, auth *middleware.AuthMiddleware, 
 	admin.GET("/claimed-subdomains", h.Subdomain.AdminListClaimed)
 	admin.DELETE("/claimed-subdomains/:id", h.Subdomain.AdminRelease)
 
+	// Subdomain claim rules (子域创建规则)
+	admin.GET("/subdomain-claim-rules", h.ClaimRule.ListRules)
+	admin.POST("/subdomain-claim-rules", h.ClaimRule.CreateRule)
+	admin.PUT("/subdomain-claim-rules/:id", h.ClaimRule.UpdateRule)
+	admin.DELETE("/subdomain-claim-rules/:id", h.ClaimRule.DeleteRule)
+	admin.PUT("/subdomain-claim-rules/:id/toggle", h.ClaimRule.ToggleRule)
+	admin.POST("/subdomain-claim-rules/test", h.ClaimRule.TestRule)
+
 	// Users & groups
 	admin.GET("/users", h.Admin.ListUsers)
 	admin.PUT("/users/:id/group", h.Admin.UpdateUserGroup)

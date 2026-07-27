@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cloudflare/cloudflare-go/v4"
@@ -58,6 +60,22 @@ func (s *CloudflareService) buildNewBody(recordType, name, content string, ttl i
 			Content: cloudflare.F(content),
 			TTL:     cloudflare.F(dns.TTL(ttl)),
 		}
+	case "NS":
+		return dns.NSRecordParam{
+			Name:    cloudflare.F(name),
+			Type:    cloudflare.F(dns.NSRecordTypeNS),
+			Content: cloudflare.F(content),
+			TTL:     cloudflare.F(dns.TTL(ttl)),
+		}
+	case "MX":
+		mxPriority, mxHost := splitMXContent(content)
+		return dns.MXRecordParam{
+			Name:     cloudflare.F(name),
+			Type:     cloudflare.F(dns.MXRecordTypeMX),
+			Content:  cloudflare.F(mxHost),
+			Priority: cloudflare.F(float64(mxPriority)),
+			TTL:      cloudflare.F(dns.TTL(ttl)),
+		}
 	default: // A
 		return dns.ARecordParam{
 			Name:    cloudflare.F(name),
@@ -94,6 +112,22 @@ func (s *CloudflareService) buildUpdateBody(recordType, name, content string, tt
 			Content: cloudflare.F(content),
 			TTL:     cloudflare.F(dns.TTL(ttl)),
 		}
+	case "NS":
+		return dns.NSRecordParam{
+			Name:    cloudflare.F(name),
+			Type:    cloudflare.F(dns.NSRecordTypeNS),
+			Content: cloudflare.F(content),
+			TTL:     cloudflare.F(dns.TTL(ttl)),
+		}
+	case "MX":
+		mxPriority, mxHost := splitMXContent(content)
+		return dns.MXRecordParam{
+			Name:     cloudflare.F(name),
+			Type:     cloudflare.F(dns.MXRecordTypeMX),
+			Content:  cloudflare.F(mxHost),
+			Priority: cloudflare.F(float64(mxPriority)),
+			TTL:      cloudflare.F(dns.TTL(ttl)),
+		}
 	default: // A
 		return dns.ARecordParam{
 			Name:    cloudflare.F(name),
@@ -103,6 +137,21 @@ func (s *CloudflareService) buildUpdateBody(recordType, name, content string, tt
 			Proxied: cloudflare.F(proxied),
 		}
 	}
+}
+
+// splitMXContent 将 "10 mail.example.com" 拆分为优先级与邮件服务器主机名。
+// 与 pkg/validator 的 MX 校验逻辑保持一致；校验已在调用前通过，此处仅做兜底解析。
+func splitMXContent(content string) (int, string) {
+	parts := strings.SplitN(strings.TrimSpace(content), " ", 2)
+	if len(parts) != 2 {
+		return 0, strings.TrimSpace(content)
+	}
+	priority := strings.TrimSpace(parts[0])
+	host := strings.TrimSpace(parts[1])
+	if pri, err := strconv.Atoi(priority); err == nil {
+		return pri, host
+	}
+	return 0, host
 }
 
 func (s *CloudflareService) CreateRecord(ctx context.Context, zoneID, recordType, name, content string, ttl int, proxied bool) (string, error) {
@@ -215,6 +264,14 @@ func (s *CloudflareService) FindRecord(ctx context.Context, zoneID, recordType, 
 	})
 	for pager.Next() {
 		rec := pager.Current()
+		if recordType == "MX" {
+			// Cloudflare 存储的 MX content 仅为邮件服务器主机名，而 HL6 内部以
+			// "优先级 主机名" 形式保存，这里用拆出的主机名进行比对，避免幂等查重失败。
+			if _, host := splitMXContent(content); rec.Content == host {
+				return rec.ID, nil
+			}
+			continue
+		}
 		if rec.Content == content {
 			return rec.ID, nil
 		}
