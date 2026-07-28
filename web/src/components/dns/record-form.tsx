@@ -96,7 +96,8 @@ function validateRecordContent(type: string, content: string): string {
       if (!/^\d{1,5}$/.test(priority) || parseInt(priority, 10) > 65535) return "recordForm.invalidSRVPriority";
       if (!/^\d{1,5}$/.test(weight) || parseInt(weight, 10) > 65535) return "recordForm.invalidSRVPriority";
       if (!/^\d{1,5}$/.test(port) || parseInt(port, 10) > 65535) return "recordForm.invalidSRVPriority";
-      const srvHost = /^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\.?$/;
+      // SRV 目标格式为 _service._protocol.hostname（含下划线前缀），不能用普通主机名正则
+      const srvHost = /^(_?[a-zA-Z0-9]([a-zA-Z0-9_-]*[a-zA-Z0-9])?\.)*_?[a-zA-Z0-9]([a-zA-Z0-9_-]*[a-zA-Z0-9])?$/;
       if (!srvHost.test(target)) return "recordForm.invalidSRVTarget";
       return "";
     }
