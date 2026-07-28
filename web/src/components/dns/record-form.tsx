@@ -46,7 +46,7 @@ function parseSRVContent(content: string): SRVFields {
     }
     return { priority, weight, port, service: "", protocol: "_tcp", target };
   }
-  return { priority: "10", weight: "5", port: "5060", service: "", protocol: "_tcp", target: "" };
+  return { priority: "", weight: "", port: "", service: "", protocol: "_tcp", target: "" };
 }
 
 function buildSRVContent(srv: SRVFields): string {
@@ -124,7 +124,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange, domainName
 
   // SRV 结构化字段
   const [srvFields, setSrvFields] = useState<SRVFields>(() =>
-    record?.type === "SRV" && record?.content ? parseSRVContent(record.content) : { priority: "10", weight: "5", port: "5060", service: "", protocol: "_tcp", target: domainName || "" }
+    record?.type === "SRV" && record?.content ? parseSRVContent(record.content) : { priority: "", weight: "", port: "", service: "", protocol: "_tcp", target: domainName || "" }
   );
 
   // 当 type 切换到 SRV 时，从 content 解析字段；切换走时同步 content
