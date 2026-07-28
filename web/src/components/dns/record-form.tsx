@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,39 @@ import {
 } from "@/components/ui/select";
 import { useCreateRecord, useUpdateRecord } from "@/hooks/use-dns-records";
 import type { DNSRecord } from "@/types";
+
+// SRV 结构化字段解析与拼接
+const SRV_PROTOCOLS = ["_tcp", "_udp", "_sctp"] as const;
+type SRVProtocol = (typeof SRV_PROTOCOLS)[number];
+
+interface SRVFields {
+  priority: string;
+  weight: string;
+  port: string;
+  service: string;
+  protocol: SRVProtocol;
+  target: string;
+}
+
+function parseSRVContent(content: string): SRVFields {
+  const parts = content.trim().split(/\s+/);
+  if (parts.length >= 4) {
+    const [priority, weight, port, ...rest] = parts;
+    const target = rest.join(" ");
+    // 尝试从 target 中提取 _service.protocol 前缀
+    const srvMatch = target.match(/^(_[a-zA-Z0-9_-]+)\.(_[a-zA-Z0-9]+)\.(.+)$/);
+    if (srvMatch) {
+      return { priority, weight, port, service: srvMatch[1], protocol: srvMatch[2] as SRVProtocol, target: srvMatch[3] };
+    }
+    return { priority, weight, port, service: "", protocol: "_tcp", target };
+  }
+  return { priority: "10", weight: "5", port: "5060", service: "", protocol: "_tcp", target: "" };
+}
+
+function buildSRVContent(srv: SRVFields): string {
+  const svc = srv.service.startsWith("_") ? srv.service : `_${srv.service}`;
+  return `${srv.priority} ${srv.weight} ${srv.port} ${svc}.${srv.protocol}.${srv.target}`.replace(/\s+/g, " ").trim();
+}
 
 function validateRecordContent(type: string, content: string): string {
   if (!content.trim()) return "";
@@ -85,6 +118,33 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
   const [proxied, setProxied] = useState(record?.proxied || false);
   const [validationError, setValidationError] = useState("");
   const { t } = useTranslation();
+
+  // SRV 结构化字段
+  const [srvFields, setSrvFields] = useState<SRVFields>(() =>
+    record?.type === "SRV" && record?.content ? parseSRVContent(record.content) : { priority: "10", weight: "5", port: "5060", service: "", protocol: "_tcp", target: "" }
+  );
+
+  // 当 type 切换到 SRV 时，从 content 解析字段；切换走时同步 content
+  useEffect(() => {
+    if (type === "SRV" && !record) {
+      // 新建 SRV：如果 content 已有值（手动输入过），解析它
+      if (content.trim()) {
+        setSrvFields(parseSRVContent(content));
+      }
+    } else if (type !== "SRV") {
+      // 非 SRV 类型时保持 content 原样
+    }
+  }, [type]);
+
+  // SRV 字段变更时同步更新 content
+  const updateSRVField = useCallback(<K extends keyof SRVFields>(key: K, value: SRVFields[K]) => {
+    setSrvFields(prev => {
+      const next = { ...prev, [key]: value };
+      setContent(buildSRVContent(next));
+      setValidationError(validateRecordContent("SRV", buildSRVContent(next)));
+      return next;
+    });
+  }, []);
 
   const create = useCreateRecord(subdomainId);
   const update = useUpdateRecord(subdomainId);
@@ -154,15 +214,51 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
           )}
           <div className="space-y-2">
             <Label>{t("recordForm.content")}</Label>
-            <Input
-              placeholder={type === "A" ? "1.2.3.4" : type === "AAAA" ? "2001:db8::1" : type === "TXT" ? "v=spf1 include:example.com ~all" : type === "NS" ? "ns1.example.com" : type === "MX" ? "10 mail.example.com" : type === "SRV" ? "10 5 5060 sip.example.com" : "example.com"}
-              value={content}
-              onChange={(e) => {
-                setContent(e.target.value);
-                setValidationError(validateRecordContent(isEdit ? record!.type : type, e.target.value));
-              }}
-              required
-            />
+            {type === "SRV" ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{t("recordForm.srvPriority") || "Priority"}</Label>
+                  <Input type="number" min="0" max="65535" value={srvFields.priority} onChange={e => updateSRVField("priority", e.target.value)} placeholder="10" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{t("recordForm.srvWeight") || "Weight"}</Label>
+                  <Input type="number" min="0" max="65535" value={srvFields.weight} onChange={e => updateSRVField("weight", e.target.value)} placeholder="5" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{t("recordForm.srvPort") || "Port"}</Label>
+                  <Input type="number" min="0" max="65535" value={srvFields.port} onChange={e => updateSRVField("port", e.target.value)} placeholder="5060" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{t("recordForm.srvService") || "Service"}</Label>
+                  <Input value={srvFields.service} onChange={e => updateSRVField("service", e.target.value)} placeholder="_sip / minecraft" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{t("recordForm.srvProtocol") || "Protocol"}</Label>
+                  <Select value={srvFields.protocol} onValueChange={(v) => updateSRVField("protocol", v as SRVProtocol)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {SRV_PROTOCOLS.map(p => (
+                        <SelectItem key={p} value={p}>{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <Label className="text-xs text-muted-foreground">{t("recordForm.srvTarget") || "Target Domain"}</Label>
+                  <Input value={srvFields.target} onChange={e => updateSRVField("target", e.target.value)} placeholder="example.com" />
+                </div>
+              </div>
+            ) : (
+              <Input
+                placeholder={type === "A" ? "1.2.3.4" : type === "AAAA" ? "2001:db8::1" : type === "TXT" ? "v=spf1 include:example.com ~all" : type === "NS" ? "ns1.example.com" : type === "MX" ? "10 mail.example.com" : "example.com"}
+                value={content}
+                onChange={(e) => {
+                  setContent(e.target.value);
+                  setValidationError(validateRecordContent(isEdit ? record!.type : type, e.target.value));
+                }}
+                required
+              />
+            )}
             {validationError && (
               <p className="text-sm text-destructive">{t(validationError)}</p>
             )}

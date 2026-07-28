@@ -220,7 +220,13 @@
     "invalidMXPriority": "無効な MX 優先度（0-65535）",
     "invalidSRVFormat": "無効な SRV レコード形式。「優先度 重み ポート ターゲット」形式（例：\"10 5 5060 sip.example.com\"）",
     "invalidSRVPriority": "無効な SRV 優先度/重み/ポート（0-65535）",
-    "invalidSRVTarget": "無効な SRV ターゲットホスト名"
+    "invalidSRVTarget": "無効な SRV ターゲットホスト名",
+    "srvPriority": "優先度",
+    "srvWeight": "重み",
+    "srvPort": "ポート",
+    "srvService": "サービス名（自動 _ プレフィックス）",
+    "srvProtocol": "プロトコル",
+    "srvTarget": "ターゲットドメイン",
   },
   "recordTable": {
     "type": "タイプ",

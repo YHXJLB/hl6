@@ -116,20 +116,12 @@ func (s *AliDNSService) CreateRecord(ctx context.Context, zoneID, recordType, na
 	}
 
 	// 阿里云 MX 记录的 Value 仅接受邮件服务器主机名，优先级需通过独立的 Priority 字段下发；
-	// 这里把 HL6 内部 "优先级 主机名" 形式的 content 拆开后再提交。
+	// SRV/NS 等其他类型均为 BIND 标准整串透传（阿里云 Priority 仅用于 MX）。
 	recordValue := content
 	var recordPriority *int64
 	if recordType == "MX" {
 		if pri, host := splitMXContent(content); host != "" {
 			recordValue = host
-			p := int64(pri)
-			recordPriority = &p
-		}
-	} else if recordType == "SRV" {
-		// 阿里云 SRV: Value 只接受 "权重 端口 目标"，优先级通过独立的 Priority 字段下发
-		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
-			pri, weight, port, target := splitSRVContent(content)
-			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
 			p := int64(pri)
 			recordPriority = &p
 		}
@@ -181,14 +173,6 @@ func (s *AliDNSService) UpdateRecord(ctx context.Context, zoneID, recordID, reco
 	if recordType == "MX" {
 		if pri, host := splitMXContent(content); host != "" {
 			recordValue = host
-			p := int64(pri)
-			recordPriority = &p
-		}
-	} else if recordType == "SRV" {
-		// 阿里云 SRV: Value 只接受 "权重 端口 目标"，优先级通过独立的 Priority 字段下发
-		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
-			pri, weight, port, target := splitSRVContent(content)
-			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
 			p := int64(pri)
 			recordPriority = &p
 		}
@@ -287,12 +271,6 @@ func (s *AliDNSService) FindRecord(ctx context.Context, zoneID, recordType, name
 				host = content
 			}
 			if !strings.EqualFold(itemValue, host) {
-				continue
-			}
-		} else if recordType == "SRV" {
-			// 阿里云 SRV: Value 为 "权重 端口 目标"，与 content 的后三段比对
-			fields := strings.Fields(strings.TrimSpace(content))
-			if len(fields) != 4 || !strings.EqualFold(itemValue, strings.Join(fields[1:], " ")) {
 				continue
 			}
 		} else if !strings.EqualFold(itemValue, content) {

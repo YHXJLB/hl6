@@ -220,7 +220,13 @@
     "invalidMXPriority": "Prioridad MX no válida (debe ser 0-65535)",
     "invalidSRVFormat": "Formato de registro SRV no válido, se espera «prioridad peso puerto destino» (p. ej. \"10 5 5060 sip.example.com\")",
     "invalidSRVPriority": "Prioridad/peso/puerto SRV no válido (debe ser 0-65535)",
-    "invalidSRVTarget": "Nombre de host de destino SRV no válido"
+    "invalidSRVTarget": "Nombre de host de destino SRV no válido",
+    "srvPriority": "Prioridad",
+    "srvWeight": "Peso",
+    "srvPort": "Puerto",
+    "srvService": "Servicio (auto _ prefijo)",
+    "srvProtocol": "Protocolo",
+    "srvTarget": "Dominio de destino",
   },
   "recordTable": {
     "type": "Tipo",

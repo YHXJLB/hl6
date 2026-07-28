@@ -220,7 +220,13 @@
     "invalidMXPriority": "無效的 MX 優先級（須為 0-65535）",
     "invalidSRVFormat": "無效的 SRV 記錄格式，期望「優先級 權重 埠 目標主機」（如 \"10 5 5060 sip.example.com\"）",
     "invalidSRVPriority": "無效的 SRV 優先級/權重/埠（須為 0-65535）",
-    "invalidSRVTarget": "無效的 SRV 目標主機名"
+    "invalidSRVTarget": "無效的 SRV 目標主機名",
+    "srvPriority": "優先權",
+    "srvWeight": "權重",
+    "srvPort": "連接埠",
+    "srvService": "服務名（自動加 _ 前綴）",
+    "srvProtocol": "協定",
+    "srvTarget": "目標網域",
   },
   "recordTable": {
     "type": "類型",

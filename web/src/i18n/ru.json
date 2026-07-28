@@ -220,7 +220,13 @@
     "invalidMXPriority": "Неверный приоритет MX (0-65535)",
     "invalidSRVFormat": "Неверный формат SRV, ожидается «приоритет вес порт цель» (напр. \"10 5 5060 sip.example.com\")",
     "invalidSRVPriority": "Неверные приоритет/вес/порт SRV (0-65535)",
-    "invalidSRVTarget": "Неверное имя хоста назначения SRV"
+    "invalidSRVTarget": "Неверное имя хоста назначения SRV",
+    "srvPriority": "Приоритет",
+    "srvWeight": "Вес",
+    "srvPort": "Порт",
+    "srvService": "Сервис (авто _ префикс)",
+    "srvProtocol": "Протокол",
+    "srvTarget": "Целевой домен",
   },
   "recordTable": {
     "type": "Тип",

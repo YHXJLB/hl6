@@ -79,20 +79,12 @@ func (s *BaiduCloudDNSService) CreateRecord(ctx context.Context, zoneID, recordT
 	}
 
 	// 百度云 DNS 的 MX 记录 Value 只接受邮件服务器主机名，优先级通过独立的 Priority 字段下发；
-	// 把 HL6 内部 "优先级 主机名" 形式的 content 拆开后再提交。
+	// SRV/NS 等其他类型均为 BIND 标准整串透传（百度 Priority 仅用于 MX）。
 	recordValue := strings.TrimSpace(content)
 	var recordPriority *int32
 	if strings.EqualFold(recordType, "MX") {
 		if pri, host := splitMXContent(content); host != "" {
 			recordValue = host
-			p := int32(pri)
-			recordPriority = &p
-		}
-	} else if strings.EqualFold(recordType, "SRV") {
-		// 百度云 SRV: Value 只接受 "权重 端口 目标"，优先级通过独立的 Priority 字段下发
-		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
-			pri, weight, port, target := splitSRVContent(content)
-			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
 			p := int32(pri)
 			recordPriority = &p
 		}
@@ -137,14 +129,6 @@ func (s *BaiduCloudDNSService) UpdateRecord(ctx context.Context, zoneID, recordI
 	if strings.EqualFold(recordType, "MX") {
 		if pri, host := splitMXContent(content); host != "" {
 			recordValue = host
-			p := int32(pri)
-			recordPriority = &p
-		}
-	} else if strings.EqualFold(recordType, "SRV") {
-		// 百度云 SRV: Value 只接受 "权重 端口 目标"，优先级通过独立的 Priority 字段下发
-		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
-			pri, weight, port, target := splitSRVContent(content)
-			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
 			p := int32(pri)
 			recordPriority = &p
 		}
@@ -238,12 +222,6 @@ func (s *BaiduCloudDNSService) FindRecord(ctx context.Context, zoneID, recordTyp
 				host = content
 			}
 			if !strings.EqualFold(itemValue, host) {
-				continue
-			}
-		} else if strings.EqualFold(rtype, "SRV") {
-			// 百度云 SRV: Value 为 "权重 端口 目标"，与 content 的后三段比对
-			fields := strings.Fields(strings.TrimSpace(content))
-			if len(fields) != 4 || !strings.EqualFold(itemValue, strings.Join(fields[1:], " ")) {
 				continue
 			}
 		} else if !strings.EqualFold(itemValue, content) {

@@ -220,7 +220,13 @@
     "invalidMXPriority": "Invalid MX priority (must be 0-65535)",
     "invalidSRVFormat": "Invalid SRV record format, expected “priority weight port target” (e.g. \"10 5 5060 sip.example.com\")",
     "invalidSRVPriority": "Invalid SRV priority/weight/port (must be 0-65535)",
-    "invalidSRVTarget": "Invalid SRV target hostname"
+    "invalidSRVTarget": "Invalid SRV target hostname",
+    "srvPriority": "Priority",
+    "srvWeight": "Weight",
+    "srvPort": "Port",
+    "srvService": "Service (auto _ prefix)",
+    "srvProtocol": "Protocol",
+    "srvTarget": "Target domain",
   },
   "recordTable": {
     "type": "Type",
