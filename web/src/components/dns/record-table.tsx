@@ -19,9 +19,11 @@ interface RecordTableProps {
   subdomainId: number;
   records: DNSRecord[];
   readOnly?: boolean;
+  /** 当前域名 FQDN，透传给 RecordForm 用于 SRV 目标域名默认值 */
+  domainName?: string;
 }
 
-export function RecordTable({ subdomainId, records, readOnly }: RecordTableProps) {
+export function RecordTable({ subdomainId, records, readOnly, domainName }: RecordTableProps) {
   const [editRecord, setEditRecord] = useState<DNSRecord | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DNSRecord | null>(null);
   const deleteRecord = useDeleteRecord(subdomainId);
@@ -111,6 +113,7 @@ export function RecordTable({ subdomainId, records, readOnly }: RecordTableProps
 
       <RecordForm
         subdomainId={subdomainId}
+        domainName={domainName}
         record={editRecord}
         open={!!editRecord}
         onOpenChange={(open) => !open && setEditRecord(null)}

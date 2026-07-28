@@ -110,9 +110,11 @@ interface RecordFormProps {
   record?: DNSRecord | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** 当前域名 FQDN（如 test-test.yhxjlb.xyz），用于 SRV 目标域名默认值 */
+  domainName?: string;
 }
 
-export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFormProps) {
+export function RecordForm({ subdomainId, record, open, onOpenChange, domainName }: RecordFormProps) {
   const [type, setType] = useState<string>(record?.type || "A");
   const [content, setContent] = useState(record?.content || "");
   const [proxied, setProxied] = useState(record?.proxied || false);
@@ -121,7 +123,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
 
   // SRV 结构化字段
   const [srvFields, setSrvFields] = useState<SRVFields>(() =>
-    record?.type === "SRV" && record?.content ? parseSRVContent(record.content) : { priority: "10", weight: "5", port: "5060", service: "", protocol: "_tcp", target: "" }
+    record?.type === "SRV" && record?.content ? parseSRVContent(record.content) : { priority: "10", weight: "5", port: "5060", service: "", protocol: "_tcp", target: domainName || "" }
   );
 
   // 当 type 切换到 SRV 时，从 content 解析字段；切换走时同步 content
@@ -130,11 +132,14 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
       // 新建 SRV：如果 content 已有值（手动输入过），解析它
       if (content.trim()) {
         setSrvFields(parseSRVContent(content));
+      } else if (domainName) {
+        // 有域名信息时，目标域名默认填当前域名
+        setSrvFields(prev => ({ ...prev, target: domainName }));
       }
     } else if (type !== "SRV") {
       // 非 SRV 类型时保持 content 原样
     }
-  }, [type]);
+  }, [type, domainName]);
 
   // SRV 字段变更时同步更新 content
   const updateSRVField = useCallback(<K extends keyof SRVFields>(key: K, value: SRVFields[K]) => {
@@ -230,7 +235,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">{t("recordForm.srvService") || "Service"}</Label>
-                  <Input value={srvFields.service} onChange={e => updateSRVField("service", e.target.value)} placeholder="_sip / minecraft" />
+                  <Input value={srvFields.service} onChange={e => updateSRVField("service", e.target.value)} placeholder="minecraft / sip" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">{t("recordForm.srvProtocol") || "Protocol"}</Label>
@@ -245,7 +250,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
                 </div>
                 <div className="space-y-1 col-span-2">
                   <Label className="text-xs text-muted-foreground">{t("recordForm.srvTarget") || "Target Domain"}</Label>
-                  <Input value={srvFields.target} onChange={e => updateSRVField("target", e.target.value)} placeholder="example.com" />
+                  <Input value={srvFields.target} onChange={e => updateSRVField("target", e.target.value)} placeholder={domainName || "目标域名"} />
                 </div>
               </div>
             ) : (

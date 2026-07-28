@@ -152,12 +152,13 @@ export default function SubdomainDetailPage() {
           <Badge variant="secondary">{t("subdomains.total", { count: records?.length ?? 0 })}</Badge>
         </CardHeader>
         <CardContent>
-          <RecordTable subdomainId={subdomainId} records={records || []} readOnly={readOnly} />
+          <RecordTable subdomainId={subdomainId} records={records || []} readOnly={readOnly} domainName={subdomain?.fqdn || ""} />
         </CardContent>
       </Card>
 
       <RecordForm
         subdomainId={subdomainId}
+        domainName={subdomain?.fqdn || ""}
         open={showAddRecord && !readOnly}
         onOpenChange={setShowAddRecord}
       />
