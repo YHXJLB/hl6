@@ -23,7 +23,7 @@ import type { DNSRecord } from "@/types";
 
 // SRV 结构化字段解析与拼接
 const SRV_PROTOCOLS = ["_tcp", "_udp", "_sctp"] as const;
-type SRVProtocol = (typeof SRV_PROTOCOLS)[number];
+type SRVProtocol = (typeof SRV_PROTOCOLS)[number] | "";
 
 interface SRVFields {
   priority: string;
@@ -44,9 +44,9 @@ function parseSRVContent(content: string): SRVFields {
     if (srvMatch) {
       return { priority, weight, port, service: srvMatch[1], protocol: srvMatch[2] as SRVProtocol, target: srvMatch[3] };
     }
-    return { priority, weight, port, service: "", protocol: "_tcp", target };
+    return { priority, weight, port, service: "", protocol: "", target: "" };
   }
-  return { priority: "", weight: "", port: "", service: "", protocol: "_tcp", target: "" };
+  return { priority: "", weight: "", port: "", service: "", protocol: "", target: "" };
 }
 
 function buildSRVContent(srv: SRVFields): string {
@@ -124,18 +124,15 @@ export function RecordForm({ subdomainId, record, open, onOpenChange, domainName
 
   // SRV 结构化字段
   const [srvFields, setSrvFields] = useState<SRVFields>(() =>
-    record?.type === "SRV" && record?.content ? parseSRVContent(record.content) : { priority: "", weight: "", port: "", service: "", protocol: "_tcp", target: domainName || "" }
+    record?.type === "SRV" && record?.content ? parseSRVContent(record.content) : { priority: "", weight: "", port: "", service: "", protocol: "", target: "" }
   );
 
   // 当 type 切换到 SRV 时，从 content 解析字段；切换走时同步 content
   useEffect(() => {
     if (type === "SRV" && !record) {
-      // 新建 SRV：如果 content 已有值（手动输入过），解析它
+      // 新建 SRV：如果 content 已有值（手动输入过），解析它；否则全部留空由用户填写
       if (content.trim()) {
         setSrvFields(parseSRVContent(content));
-      } else if (domainName) {
-        // 有域名信息时，目标域名默认填当前域名
-        setSrvFields(prev => ({ ...prev, target: domainName }));
       }
     } else if (type !== "SRV") {
       // 非 SRV 类型时保持 content 原样
@@ -241,7 +238,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange, domainName
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">{t("recordForm.srvProtocol") || "Protocol"}</Label>
                   <Select value={srvFields.protocol} onValueChange={(v) => updateSRVField("protocol", v as SRVProtocol)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("recordForm.srvProtocolPlaceholder") || "Protocol"} /></SelectTrigger>
                     <SelectContent>
                       {SRV_PROTOCOLS.map(p => (
                         <SelectItem key={p} value={p}>{p}</SelectItem>
