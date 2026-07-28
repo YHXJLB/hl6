@@ -88,6 +88,14 @@ func (s *BaiduCloudDNSService) CreateRecord(ctx context.Context, zoneID, recordT
 			p := int32(pri)
 			recordPriority = &p
 		}
+	} else if strings.EqualFold(recordType, "SRV") {
+		// 百度云 SRV: Value 只接受 "权重 端口 目标"，优先级通过独立的 Priority 字段下发
+		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
+			pri, weight, port, target := splitSRVContent(content)
+			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
+			p := int32(pri)
+			recordPriority = &p
+		}
 	}
 	ttlVal := int32(ttl)
 	args := &dns.CreateRecordRequest{
@@ -129,6 +137,14 @@ func (s *BaiduCloudDNSService) UpdateRecord(ctx context.Context, zoneID, recordI
 	if strings.EqualFold(recordType, "MX") {
 		if pri, host := splitMXContent(content); host != "" {
 			recordValue = host
+			p := int32(pri)
+			recordPriority = &p
+		}
+	} else if strings.EqualFold(recordType, "SRV") {
+		// 百度云 SRV: Value 只接受 "权重 端口 目标"，优先级通过独立的 Priority 字段下发
+		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
+			pri, weight, port, target := splitSRVContent(content)
+			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
 			p := int32(pri)
 			recordPriority = &p
 		}
@@ -214,19 +230,25 @@ func (s *BaiduCloudDNSService) FindRecord(ctx context.Context, zoneID, recordTyp
 			if !strings.EqualFold(strings.ToUpper(r.Type), rtype) {
 				continue
 			}
-			itemValue := strings.TrimSpace(r.Value)
-			if strings.EqualFold(rtype, "MX") {
-				// 百度云只存储主机名，用 content 拆出的主机名进行比对
-				_, host := splitMXContent(content)
-				if host == "" {
-					host = content
-				}
-				if !strings.EqualFold(itemValue, host) {
-					continue
-				}
-			} else if !strings.EqualFold(itemValue, content) {
+		itemValue := strings.TrimSpace(r.Value)
+		if strings.EqualFold(rtype, "MX") {
+			// 百度云只存储主机名，用 content 拆出的主机名进行比对
+			_, host := splitMXContent(content)
+			if host == "" {
+				host = content
+			}
+			if !strings.EqualFold(itemValue, host) {
 				continue
 			}
+		} else if strings.EqualFold(rtype, "SRV") {
+			// 百度云 SRV: Value 为 "权重 端口 目标"，与 content 的后三段比对
+			fields := strings.Fields(strings.TrimSpace(content))
+			if len(fields) != 4 || !strings.EqualFold(itemValue, strings.Join(fields[1:], " ")) {
+				continue
+			}
+		} else if !strings.EqualFold(itemValue, content) {
+			continue
+		}
 			return r.Id, nil
 		}
 		if !resp.IsTruncated {

@@ -118,6 +118,15 @@ func (s *DNSPodService) CreateRecord(ctx context.Context, zoneID, recordType, na
 			p := uint64(pri)
 			mxPriority = &p
 		}
+	} else if strings.EqualFold(recordType, "SRV") {
+		// DNSPod 的 SRV: Value 只接受 "权重 端口 目标主机"，优先级复用 MX 字段下发；
+		// 把 HL6 内部 "优先级 权重 端口 目标" 形式的 content 拆开后再提交。
+		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
+			pri, weight, port, target := splitSRVContent(content)
+			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
+			p := uint64(pri)
+			mxPriority = &p
+		}
 	}
 	req := dnspod.NewCreateRecordRequest()
 	req.Domain = strPtr(zoneName)
@@ -173,6 +182,15 @@ func (s *DNSPodService) UpdateRecord(ctx context.Context, zoneID, recordID, reco
 	if strings.EqualFold(recordType, "MX") {
 		if pri, host := splitMXContent(content); host != "" {
 			recordValue = host
+			p := uint64(pri)
+			mxPriority = &p
+		}
+	} else if strings.EqualFold(recordType, "SRV") {
+		// DNSPod 的 SRV: Value 只接受 "权重 端口 目标主机"，优先级复用 MX 字段下发；
+		// 把 HL6 内部 "优先级 权重 端口 目标" 形式的 content 拆开后再提交。
+		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
+			pri, weight, port, target := splitSRVContent(content)
+			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
 			p := uint64(pri)
 			mxPriority = &p
 		}
@@ -284,19 +302,25 @@ func (s *DNSPodService) FindRecord(ctx context.Context, zoneID, recordType, name
 			if !strings.EqualFold(strings.TrimSpace(ptrString(item.Type)), recordType) {
 				continue
 			}
-			itemValue := strings.TrimSpace(ptrString(item.Value))
-			if strings.EqualFold(recordType, "MX") {
-				// DNSPod 只存储主机名，用 content 拆出的主机名进行比对
-				_, host := splitMXContent(content)
-				if host == "" {
-					host = content
-				}
-				if !strings.EqualFold(itemValue, host) {
-					continue
-				}
-			} else if !strings.EqualFold(itemValue, content) {
+		itemValue := strings.TrimSpace(ptrString(item.Value))
+		if strings.EqualFold(recordType, "MX") {
+			// DNSPod 只存储主机名，用 content 拆出的主机名进行比对
+			_, host := splitMXContent(content)
+			if host == "" {
+				host = content
+			}
+			if !strings.EqualFold(itemValue, host) {
 				continue
 			}
+		} else if strings.EqualFold(recordType, "SRV") {
+			// DNSPod 的 SRV: Value 为 "权重 端口 目标"，与 content 的后三段比对
+			fields := strings.Fields(strings.TrimSpace(content))
+			if len(fields) != 4 || !strings.EqualFold(itemValue, strings.Join(fields[1:], " ")) {
+				continue
+			}
+		} else if !strings.EqualFold(itemValue, content) {
+			continue
+		}
 			return strconv.FormatUint(*item.RecordId, 10), nil
 		}
 

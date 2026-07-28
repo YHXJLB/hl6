@@ -125,6 +125,14 @@ func (s *AliDNSService) CreateRecord(ctx context.Context, zoneID, recordType, na
 			p := int64(pri)
 			recordPriority = &p
 		}
+	} else if recordType == "SRV" {
+		// 阿里云 SRV: Value 只接受 "权重 端口 目标"，优先级通过独立的 Priority 字段下发
+		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
+			pri, weight, port, target := splitSRVContent(content)
+			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
+			p := int64(pri)
+			recordPriority = &p
+		}
 	}
 	req := &alidns.AddDomainRecordRequest{
 		DomainName: &zoneName,
@@ -173,6 +181,14 @@ func (s *AliDNSService) UpdateRecord(ctx context.Context, zoneID, recordID, reco
 	if recordType == "MX" {
 		if pri, host := splitMXContent(content); host != "" {
 			recordValue = host
+			p := int64(pri)
+			recordPriority = &p
+		}
+	} else if recordType == "SRV" {
+		// 阿里云 SRV: Value 只接受 "权重 端口 目标"，优先级通过独立的 Priority 字段下发
+		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
+			pri, weight, port, target := splitSRVContent(content)
+			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
 			p := int64(pri)
 			recordPriority = &p
 		}
@@ -263,19 +279,25 @@ func (s *AliDNSService) FindRecord(ctx context.Context, zoneID, recordType, name
 			if !strings.EqualFold(strings.TrimSpace(ptrString(item.Type)), recordType) {
 				continue
 			}
-			itemValue := strings.TrimSpace(ptrString(item.Value))
-			if recordType == "MX" {
-				// 阿里云只存储主机名，用 content 拆出的主机名进行比对
-				_, host := splitMXContent(content)
-				if host == "" {
-					host = content
-				}
-				if !strings.EqualFold(itemValue, host) {
-					continue
-				}
-			} else if !strings.EqualFold(itemValue, content) {
+		itemValue := strings.TrimSpace(ptrString(item.Value))
+		if recordType == "MX" {
+			// 阿里云只存储主机名，用 content 拆出的主机名进行比对
+			_, host := splitMXContent(content)
+			if host == "" {
+				host = content
+			}
+			if !strings.EqualFold(itemValue, host) {
 				continue
 			}
+		} else if recordType == "SRV" {
+			// 阿里云 SRV: Value 为 "权重 端口 目标"，与 content 的后三段比对
+			fields := strings.Fields(strings.TrimSpace(content))
+			if len(fields) != 4 || !strings.EqualFold(itemValue, strings.Join(fields[1:], " ")) {
+				continue
+			}
+		} else if !strings.EqualFold(itemValue, content) {
+			continue
+		}
 			return strings.TrimSpace(*item.RecordId), nil
 		}
 
