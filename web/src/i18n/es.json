@@ -226,8 +226,7 @@
     "srvPort": "Puerto",
     "srvService": "Servicio (auto _ prefijo)",
     "srvProtocol": "Protocolo",
-    "srvTarget": "Dominio de destino",
-  },
+    "srvTarget": "Dominio de destino"},
   "recordTable": {
     "type": "Tipo",
     "content": "Contenido",

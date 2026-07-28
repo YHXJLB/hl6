@@ -226,8 +226,7 @@
     "srvPort": "ポート",
     "srvService": "サービス名（自動 _ プレフィックス）",
     "srvProtocol": "プロトコル",
-    "srvTarget": "ターゲットドメイン",
-  },
+    "srvTarget": "ターゲットドメイン"},
   "recordTable": {
     "type": "タイプ",
     "content": "コンテンツ",

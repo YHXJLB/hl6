@@ -226,8 +226,7 @@
     "srvPort": "Порт",
     "srvService": "Сервис (авто _ префикс)",
     "srvProtocol": "Протокол",
-    "srvTarget": "Целевой домен",
-  },
+    "srvTarget": "Целевой домен"},
   "recordTable": {
     "type": "Тип",
     "content": "Содержимое",
