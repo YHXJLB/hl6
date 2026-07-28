@@ -226,6 +226,7 @@
     "srvPort": "Порт",
     "srvService": "Сервис (авто _ префикс)",
     "srvProtocol": "Протокол",
+    "srvProtocolPlaceholder": "_tcp / _udp / свой",
     "srvTarget": "Целевой домен"},
   "recordTable": {
     "type": "Тип",

@@ -23,7 +23,7 @@ import type { DNSRecord } from "@/types";
 
 // SRV 结构化字段解析与拼接
 const SRV_PROTOCOLS = ["_tcp", "_udp", "_sctp"] as const;
-type SRVProtocol = (typeof SRV_PROTOCOLS)[number] | "";
+type SRVProtocol = string; // 支持自定义协议输入（如 _quic、_kcp 等）
 
 interface SRVFields {
   priority: string;
@@ -59,7 +59,7 @@ function buildSRVContent(srv: SRVFields): string {
 /** 从 SRV 字段构建记录名前缀（_service._protocol），用于拼到子域前面 */
 function buildSRVNamePrefix(srv: SRVFields): string {
   const svc = srv.service.startsWith("_") ? srv.service : (srv.service ? `_${srv.service}` : "");
-  if (svc && srv.protocol) return `${srv.protocol}.${svc}`;
+  if (svc && srv.protocol) return `${svc}.${srv.protocol}`;
   return "";
 }
 
@@ -254,14 +254,20 @@ export function RecordForm({ subdomainId, record, open, onOpenChange, domainName
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">{t("recordForm.srvProtocol") || "Protocol"}</Label>
-                  <Select value={srvFields.protocol} onValueChange={(v) => updateSRVField("protocol", v as SRVProtocol)}>
-                    <SelectTrigger><SelectValue placeholder={t("recordForm.srvProtocolPlaceholder") || "Protocol"} /></SelectTrigger>
-                    <SelectContent>
-                      {SRV_PROTOCOLS.map(p => (
-                        <SelectItem key={p} value={p}>{p}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    list="srv-protocol-suggestions"
+                    value={srvFields.protocol}
+                    onChange={e => {
+                      let val = e.target.value.trim();
+                      // 自动补全 _ 前缀（用户输入不带下划线时）
+                      if (val && !val.startsWith("_")) val = `_${val}`;
+                      updateSRVField("protocol", val);
+                    }}
+                    placeholder={t("recordForm.srvProtocolPlaceholder") || "_tcp / _udp / 自定义"}
+                  />
+                  <datalist id="srv-protocol-suggestions">
+                    {SRV_PROTOCOLS.map(p => <option key={p} value={p} />)}
+                  </datalist>
                 </div>
                 <div className="space-y-1 col-span-2">
                   <Label className="text-xs text-muted-foreground">{t("recordForm.srvTarget") || "Target Domain"}</Label>

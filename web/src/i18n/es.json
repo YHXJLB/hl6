@@ -226,6 +226,7 @@
     "srvPort": "Puerto",
     "srvService": "Servicio (auto _ prefijo)",
     "srvProtocol": "Protocolo",
+    "srvProtocolPlaceholder": "_tcp / _udp / personalizado",
     "srvTarget": "Dominio de destino"},
   "recordTable": {
     "type": "Tipo",

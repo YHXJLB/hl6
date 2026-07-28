@@ -226,6 +226,7 @@
     "srvPort": "連接埠",
     "srvService": "服務名（自動加 _ 前綴）",
     "srvProtocol": "協定",
+    "srvProtocolPlaceholder": "_tcp / _udp / 自訂",
     "srvTarget": "目標網域"},
   "recordTable": {
     "type": "類型",

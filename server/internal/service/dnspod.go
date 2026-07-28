@@ -119,13 +119,11 @@ func (s *DNSPodService) CreateRecord(ctx context.Context, zoneID, recordType, na
 			mxPriority = &p
 		}
 	} else if strings.EqualFold(recordType, "SRV") {
-		// DNSPod 的 SRV: Value 只接受 "权重 端口 目标主机"，优先级复用 MX 字段下发；
-		// 把 HL6 内部 "优先级 权重 端口 目标" 形式的 content 拆开后再提交。
+		// DNSPod 的 SRV 记录值格式为 "优先级 权重 端口 目标主机"（4 段整串），
+		// 优先级直接写在 Value 里；MX 字段（优先级）对 SRV 记录不需要填写（官方文档明确说明）。
 		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
 			pri, weight, port, target := splitSRVContent(content)
-			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
-			p := uint64(pri)
-			mxPriority = &p
+			recordValue = fmt.Sprintf("%d %d %d %s", pri, weight, port, target)
 		}
 	}
 	req := dnspod.NewCreateRecordRequest()
@@ -186,13 +184,11 @@ func (s *DNSPodService) UpdateRecord(ctx context.Context, zoneID, recordID, reco
 			mxPriority = &p
 		}
 	} else if strings.EqualFold(recordType, "SRV") {
-		// DNSPod 的 SRV: Value 只接受 "权重 端口 目标主机"，优先级复用 MX 字段下发；
-		// 把 HL6 内部 "优先级 权重 端口 目标" 形式的 content 拆开后再提交。
+		// DNSPod 的 SRV 记录值格式为 "优先级 权重 端口 目标主机"（4 段整串），
+		// 优先级直接写在 Value 里；MX 字段（优先级）对 SRV 记录不需要填写（官方文档明确说明）。
 		if fields := strings.Fields(strings.TrimSpace(content)); len(fields) == 4 {
 			pri, weight, port, target := splitSRVContent(content)
-			recordValue = fmt.Sprintf("%d %d %s", weight, port, target)
-			p := uint64(pri)
-			mxPriority = &p
+			recordValue = fmt.Sprintf("%d %d %d %s", pri, weight, port, target)
 		}
 	}
 	req := dnspod.NewModifyRecordRequest()
@@ -313,9 +309,9 @@ func (s *DNSPodService) FindRecord(ctx context.Context, zoneID, recordType, name
 				continue
 			}
 		} else if strings.EqualFold(recordType, "SRV") {
-			// DNSPod 的 SRV: Value 为 "权重 端口 目标"，与 content 的后三段比对
+			// DNSPod 的 SRV: Value 为完整的 "优先级 权重 端口 目标"，与 content 全四段比对
 			fields := strings.Fields(strings.TrimSpace(content))
-			if len(fields) != 4 || !strings.EqualFold(itemValue, strings.Join(fields[1:], " ")) {
+			if len(fields) != 4 || !strings.EqualFold(itemValue, strings.Join(fields, " ")) {
 				continue
 			}
 		} else if !strings.EqualFold(itemValue, content) {
