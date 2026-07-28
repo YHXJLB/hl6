@@ -1,9 +1,10 @@
 # 基础镜像统一在首个 FROM 之前声明（BuildKit 规则：用于 FROM 的 ARG 必须是全局的）
-#   - 默认使用私有镜像源（服务器本地构建，速度快且预装 libwebp）
-#   - GitHub Actions 等无法访问私有源时，传入公共 Docker Hub 镜像即可
-ARG NODE_IMAGE=mirror.houlang.cloud/dh/node:22-alpine
-ARG GO_IMAGE=mirror.houlang.cloud/dh/golang:1.25.8-alpine
-ARG FINAL_IMAGE=mirror.houlang.cloud/dh/alpine:3.22
+#   - 默认使用公共 Docker Hub 官方镜像（GitHub Actions / 阿里云构建等 CI 环境可直接拉取）
+#   - 服务器本地构建如需私有源加速，传入 build-arg 覆盖即可：
+#       --build-arg NODE_IMAGE=mirror.houlang.cloud/dh/node:22-alpine
+ARG NODE_IMAGE=node:22-alpine
+ARG GO_IMAGE=golang:1.25.8-alpine
+ARG FINAL_IMAGE=alpine:3.22
 
 FROM ${NODE_IMAGE} AS web-builder
 
