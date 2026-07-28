@@ -155,7 +155,7 @@ func ValidateDNSRecord(recordType, content string) error {
 				}
 			}
 		}
-		// SRV 目标格式为 _service._protocol.hostname（含下划线前缀），不能用普通主机名正则
+		// SRV 目标是纯主机名（如 x17.ungc.com.cn），_service._protocol 已拼到记录名前面
 		if !srvTargetRegex.MatchString(fields[3]) {
 			return &ValidationError{
 				Message: fmt.Sprintf("invalid SRV target: %s", fields[3]),
@@ -175,8 +175,8 @@ func ValidateDNSRecord(recordType, content string) error {
 
 var hostnameRegex = regexp.MustCompile(`^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\.?$`)
 
-// srvTargetRegex 允许下划线开头的标签（_service._protocol.hostname），用于 SRV 目标主机名校验。
-// 普通主机名不允许下划线，但 SRV 的 RDATA 目标字段必须包含 _service._protocol 前缀。
+// srvTargetRegex 用于 SRV 目标主机名校验。目标通常是纯主机名（如 x17.ungc.com.cn），
+// 但为兼容旧数据（可能含 _service._protocol 前缀），仍允许下划线开头的标签。
 var srvTargetRegex = regexp.MustCompile(`^(_?[a-zA-Z0-9]([a-zA-Z0-9_-]{0,61}[a-zA-Z0-9])?\.)*_?[a-zA-Z0-9]([a-zA-Z0-9_-]{0,61}[a-zA-Z0-9])?$`)
 
 func isValidHostname(host string) bool {

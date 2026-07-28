@@ -50,8 +50,17 @@ function parseSRVContent(content: string): SRVFields {
 }
 
 function buildSRVContent(srv: SRVFields): string {
-  const svc = srv.service.startsWith("_") ? srv.service : `_${srv.service}`;
-  return `${srv.priority} ${srv.weight} ${srv.port} ${svc}.${srv.protocol}.${srv.target}`.replace(/\s+/g, " ").trim();
+  // SRV 标准 content 格式：priority weight port target
+  // target 是纯主机名（如 x17.ungc.com.cn），不含 _service._protocol 前缀
+  // _service._protocol 应拼到记录名（name/subdomain）前面，不是这里
+  return `${srv.priority} ${srv.weight} ${srv.port} ${srv.target}`.replace(/\s+/g, " ").trim();
+}
+
+/** 从 SRV 字段构建记录名前缀（_service._protocol），用于拼到子域前面 */
+function buildSRVNamePrefix(srv: SRVFields): string {
+  const svc = srv.service.startsWith("_") ? srv.service : (srv.service ? `_${srv.service}` : "");
+  if (svc && srv.protocol) return `${srv.protocol}.${svc}`;
+  return "";
 }
 
 function validateRecordContent(type: string, content: string): string {
@@ -156,14 +165,22 @@ export function RecordForm({ subdomainId, record, open, onOpenChange, domainName
 
   const handleSubmit = () => {
     if (!content.trim()) return;
-    const data = {
+    const baseData = {
       content: content.trim(),
       proxied: type === "TXT" || type === "NS" || type === "MX" || type === "SRV" ? false : proxied,
     };
 
+    // SRV 记录：_service._protocol 需要拼到记录名（子域）前面，不是 content 里
+    if (type === "SRV") {
+      const prefix = buildSRVNamePrefix(srvFields);
+      if (prefix) {
+        (baseData as Record<string, unknown>).srvNamePrefix = prefix;
+      }
+    }
+
     if (isEdit && record) {
       update.mutate(
-        { recordId: record.id, ...data },
+        { recordId: record.id, ...baseData },
         {
           onSuccess: () => {
             onOpenChange(false);
@@ -172,7 +189,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange, domainName
       );
     } else {
       create.mutate(
-        { type, ...data },
+        { type, ...baseData },
         {
           onSuccess: () => {
             setContent("");

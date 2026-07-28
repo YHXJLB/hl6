@@ -77,8 +77,8 @@ func (h *DNSHandler) checkMigrationReadOnly(c *gin.Context, sub *model.Subdomain
 			Code:    -1,
 			Message: "domain is in read-only state during DNS migration",
 			Data: map[string]string{
-				"error_category":   "domain_migration_read_only",
-				"migration_state":  sub.Domain.MigrationState,
+				"error_category":  "domain_migration_read_only",
+				"migration_state": sub.Domain.MigrationState,
 			},
 		})
 		return true
@@ -98,9 +98,10 @@ func (h *DNSHandler) CreateRecord(c *gin.Context) {
 		return
 	}
 	var body struct {
-		Type    string `json:"type" binding:"required"`
-		Content string `json:"content" binding:"required"`
-		Proxied bool   `json:"proxied"`
+		Type          string `json:"type" binding:"required"`
+		Content       string `json:"content" binding:"required"`
+		Proxied       bool   `json:"proxied"`
+		SrvNamePrefix string `json:"srvNamePrefix"` // SRV: _service._protocol 前缀，拼到记录名前
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid request body", "error.invalidRequestBody")
@@ -145,10 +146,16 @@ func (h *DNSHandler) CreateRecord(c *gin.Context) {
 	if !ok {
 		return
 	}
+	// SRV 记录：_service._protocol 前缀拼到记录名（子域 FQDN）前面
+	// 例如 _minecraft._tcp + test-test.yhxjlb.xyz → _minecraft._tcp.test-test.yhxjlb.xyz
+	recordName := sub.FQDN
+	if body.Type == "SRV" && body.SrvNamePrefix != "" {
+		recordName = body.SrvNamePrefix + "." + recordName
+	}
 	record := &model.DNSRecord{
 		SubdomainID: sub.ID,
 		Type:        body.Type,
-		Name:        sub.FQDN,
+		Name:        recordName,
 		Content:     body.Content,
 		TTL:         ttl,
 		Proxied:     body.Proxied,
@@ -294,8 +301,9 @@ func (h *DNSHandler) UpdateRecord(c *gin.Context) {
 	}
 
 	var body struct {
-		Content string `json:"content" binding:"required"`
-		Proxied bool   `json:"proxied"`
+		Content       string `json:"content" binding:"required"`
+		Proxied       bool   `json:"proxied"`
+		SrvNamePrefix string `json:"srvNamePrefix"` // SRV: _service._protocol 前缀
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.ErrorWithKey(c, http.StatusBadRequest, "invalid request body", "error.invalidRequestBody")
@@ -332,6 +340,11 @@ func (h *DNSHandler) UpdateRecord(c *gin.Context) {
 	if !ok {
 		return
 	}
+	// SRV 记录更新：如果前端传了新的 name 前缀，更新记录名
+	if record.Type == "SRV" && body.SrvNamePrefix != "" {
+		record.Name = body.SrvNamePrefix + "." + sub.FQDN
+	}
+
 	scope := fmt.Sprintf("dns:update:user:%d:record:%d", sub.UserID, record.ID)
 	result := h.ops.ExecuteIdempotent(c.Request.Context(), scope, key, func(ctx context.Context) (service.OperationResult, error) {
 		err := h.ops.UpdateRecordAtomic(ctx, service.UpdateRecordInput{
