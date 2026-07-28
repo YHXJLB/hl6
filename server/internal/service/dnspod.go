@@ -108,13 +108,27 @@ func (s *DNSPodService) CreateRecord(ctx context.Context, zoneID, recordType, na
 		return "", fmt.Errorf("dnspod pre-check record: %w", findErr)
 	}
 
+	// DNSPod 的 MX 记录 Value 只接受邮件服务器主机名，优先级通过独立的 MX 字段下发；
+	// 把 HL6 内部 "优先级 主机名" 形式的 content 拆开后再提交。
+	recordValue := strings.TrimSpace(content)
+	var mxPriority *uint64
+	if strings.EqualFold(recordType, "MX") {
+		if pri, host := splitMXContent(content); host != "" {
+			recordValue = host
+			p := uint64(pri)
+			mxPriority = &p
+		}
+	}
 	req := dnspod.NewCreateRecordRequest()
 	req.Domain = strPtr(zoneName)
 	req.DomainId = &domainID
 	req.RecordType = strPtr(strings.ToUpper(strings.TrimSpace(recordType)))
 	req.RecordLine = strPtr("默认")
-	req.Value = strPtr(strings.TrimSpace(content))
+	req.Value = strPtr(recordValue)
 	req.SubDomain = strPtr(subDomain)
+	if mxPriority != nil {
+		req.MX = mxPriority
+	}
 	_ = ttl
 
 	resp, err := s.client.CreateRecordWithContext(ctx, req)
@@ -154,14 +168,26 @@ func (s *DNSPodService) UpdateRecord(ctx context.Context, zoneID, recordID, reco
 		return err
 	}
 
+	recordValue := strings.TrimSpace(content)
+	var mxPriority *uint64
+	if strings.EqualFold(recordType, "MX") {
+		if pri, host := splitMXContent(content); host != "" {
+			recordValue = host
+			p := uint64(pri)
+			mxPriority = &p
+		}
+	}
 	req := dnspod.NewModifyRecordRequest()
 	req.Domain = strPtr(zoneName)
 	req.DomainId = &domainID
 	req.RecordId = &parsedRecordID
 	req.RecordType = strPtr(strings.ToUpper(strings.TrimSpace(recordType)))
 	req.RecordLine = strPtr("默认")
-	req.Value = strPtr(strings.TrimSpace(content))
+	req.Value = strPtr(recordValue)
 	req.SubDomain = strPtr(subDomain)
+	if mxPriority != nil {
+		req.MX = mxPriority
+	}
 	_ = ttl
 
 	if _, err := s.client.ModifyRecordWithContext(ctx, req); err != nil {
@@ -258,7 +284,17 @@ func (s *DNSPodService) FindRecord(ctx context.Context, zoneID, recordType, name
 			if !strings.EqualFold(strings.TrimSpace(ptrString(item.Type)), recordType) {
 				continue
 			}
-			if !strings.EqualFold(strings.TrimSpace(ptrString(item.Value)), content) {
+			itemValue := strings.TrimSpace(ptrString(item.Value))
+			if strings.EqualFold(recordType, "MX") {
+				// DNSPod 只存储主机名，用 content 拆出的主机名进行比对
+				_, host := splitMXContent(content)
+				if host == "" {
+					host = content
+				}
+				if !strings.EqualFold(itemValue, host) {
+					continue
+				}
+			} else if !strings.EqualFold(itemValue, content) {
 				continue
 			}
 			return strconv.FormatUint(*item.RecordId, 10), nil

@@ -24,26 +24,37 @@ func ValidateSubdomainName(name string, minLength, maxLength int) error {
 			Key:     "error.invalidSubdomainLength",
 		}
 	}
+	// 不允许首尾为点号或连字符，避免 ".x" / "x." / "-x" / "x-" 以及空标签 ".."
+	if name[0] == '.' || name[0] == '-' || name[len(name)-1] == '.' || name[len(name)-1] == '-' {
+		return &ValidationError{
+			Message: "invalid subdomain name: must not start or end with dot or hyphen",
+			Key:     "error.invalidSubdomainName",
+		}
+	}
 	for i := 0; i < len(name); i++ {
 		ch := name[i]
-		if ch >= 'a' && ch <= 'z' {
-			continue
-		}
-		if ch >= '0' && ch <= '9' {
-			continue
-		}
-		if ch == '-' {
-			if i == 0 || i == len(name)-1 {
+		switch {
+		case ch >= 'a' && ch <= 'z':
+			// 合法
+		case ch >= '0' && ch <= '9':
+			// 合法
+		case ch == '-':
+			// 连字符（首尾已在前一步排除）
+		case ch == '_':
+			// 下划线：SRV/TLSA 等服务记录名允许（如 _sip._tcp），Cloudflare 亦支持
+		case ch == '.':
+			// 允许多级子域（如 _sip._tcp），但禁止连续点产生空标签
+			if i > 0 && name[i-1] == '.' {
 				return &ValidationError{
-					Message: "invalid subdomain name: must not start or end with hyphen",
+					Message: "invalid subdomain name: empty label (consecutive dots) not allowed",
 					Key:     "error.invalidSubdomainName",
 				}
 			}
-			continue
-		}
-		return &ValidationError{
-			Message: "invalid subdomain name: must contain only lowercase letters, numbers, and hyphens",
-			Key:     "error.invalidSubdomainName",
+		default:
+			return &ValidationError{
+				Message: "invalid subdomain name: must contain only lowercase letters, numbers, hyphens, underscores and dots",
+				Key:     "error.invalidSubdomainName",
+			}
 		}
 	}
 	return nil
@@ -122,6 +133,33 @@ func ValidateDNSRecord(recordType, content string) error {
 				Message: fmt.Sprintf("invalid MX host: %s", host),
 				Key:     "error.invalidMXHost",
 				Params:  map[string]string{"value": host},
+			}
+		}
+	case "SRV":
+		// SRV 格式：优先级 权重 端口 目标主机，例如 "10 5 5060 sip.example.com"
+		fields := strings.Fields(strings.TrimSpace(content))
+		if len(fields) != 4 {
+			return &ValidationError{
+				Message: fmt.Sprintf("invalid SRV record format, expected 'priority weight port target' (e.g. '10 5 5060 sip.example.com'): %s", content),
+				Key:     "error.invalidSRVFormat",
+				Params:  map[string]string{"value": content},
+			}
+		}
+		for _, num := range fields[:3] {
+			n, err := strconv.Atoi(num)
+			if err != nil || n < 0 || n > 65535 {
+				return &ValidationError{
+					Message: fmt.Sprintf("invalid SRV priority/weight/port (must be 0-65535): %s", num),
+					Key:     "error.invalidSRVPriority",
+					Params:  map[string]string{"value": num},
+				}
+			}
+		}
+		if !isValidHostname(fields[3]) {
+			return &ValidationError{
+				Message: fmt.Sprintf("invalid SRV target: %s", fields[3]),
+				Key:     "error.invalidSRVTarget",
+				Params:  map[string]string{"value": fields[3]},
 			}
 		}
 	default:

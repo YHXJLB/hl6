@@ -59,7 +59,7 @@ export interface Subdomain {
 export interface DNSRecord {
   id: number;
   subdomain_id: number;
-  type: "A" | "CNAME" | "AAAA" | "TXT" | "NS" | "MX";
+  type: "A" | "CNAME" | "AAAA" | "TXT" | "NS" | "MX" | "SRV";
   name: string;
   content: string;
   ttl: number;

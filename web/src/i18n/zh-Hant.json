@@ -214,7 +214,13 @@
     "invalidIPv6": "請輸入有效的 IPv6 位址",
     "invalidHostname": "請輸入有效的網域名稱",
     "typeNS": "NS (域名伺服器)",
-    "typeMX": "MX (郵件交換)"
+    "typeMX": "MX (郵件交換)",
+    "typeSRV": "SRV (服務記錄)",
+    "invalidMXFormat": "無效的 MX 記錄格式，期望「優先級 主機名」（如 \"10 mail.example.com\"）",
+    "invalidMXPriority": "無效的 MX 優先級（須為 0-65535）",
+    "invalidSRVFormat": "無效的 SRV 記錄格式，期望「優先級 權重 埠 目標主機」（如 \"10 5 5060 sip.example.com\"）",
+    "invalidSRVPriority": "無效的 SRV 優先級/權重/埠（須為 0-65535）",
+    "invalidSRVTarget": "無效的 SRV 目標主機名"
   },
   "recordTable": {
     "type": "類型",
@@ -780,6 +786,9 @@
     "invalidMXFormat": "無效的 MX 記錄格式，期望「優先級 主機名」（如 \"10 mail.example.com\"）：{{value}}",
     "invalidMXPriority": "無效的 MX 優先級（須為 0-65535）：{{value}}",
     "invalidMXHost": "無效的 MX 主機名：{{value}}",
+    "invalidSRVFormat": "無效的 SRV 記錄格式，期望「優先級 權重 埠 目標主機」（如 \"10 5 5060 sip.example.com\"）：{{value}}",
+    "invalidSRVPriority": "無效的 SRV 優先級/權重/埠（須為 0-65535）：{{value}}",
+    "invalidSRVTarget": "無效的 SRV 目標主機名：{{value}}",
     "missingParams": "缺少必要參數",
     "invalidDomainID": "無效的 domain_id",
     "checkFailed": "規則檢測失敗",

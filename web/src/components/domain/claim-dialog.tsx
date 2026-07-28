@@ -113,7 +113,7 @@ export function ClaimDialog({ domain, open, onOpenChange }: ClaimDialogProps) {
                 id="subdomain"
                 placeholder={t("claimDialog.placeholder")}
                 value={name}
-                onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9-_.]/g, ""))}
                 maxLength={maxLength}
                 aria-invalid={hasLengthError}
                 onKeyDown={(e) => {

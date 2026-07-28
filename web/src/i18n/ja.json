@@ -214,7 +214,13 @@
     "invalidIPv6": "有効なIPv6アドレスを入力してください",
     "invalidHostname": "有効なホスト名を入力してください",
     "typeNS": "NS (ネームサーバー)",
-    "typeMX": "MX (メール交換)"
+    "typeMX": "MX (メール交換)",
+    "typeSRV": "SRV (サービス記録)",
+    "invalidMXFormat": "無効な MX レコード形式。「優先度 ホスト名」形式（例：\"10 mail.example.com\"）",
+    "invalidMXPriority": "無効な MX 優先度（0-65535）",
+    "invalidSRVFormat": "無効な SRV レコード形式。「優先度 重み ポート ターゲット」形式（例：\"10 5 5060 sip.example.com\"）",
+    "invalidSRVPriority": "無効な SRV 優先度/重み/ポート（0-65535）",
+    "invalidSRVTarget": "無効な SRV ターゲットホスト名"
   },
   "recordTable": {
     "type": "タイプ",
@@ -780,6 +786,9 @@
     "invalidMXFormat": "無効な MX レコード形式。「優先度 ホスト名」形式（例：\"10 mail.example.com\"）：{{value}}",
     "invalidMXPriority": "無効な MX 優先度（0-65535）：{{value}}",
     "invalidMXHost": "無効な MX ホスト名：{{value}}",
+    "invalidSRVFormat": "無効な SRV レコード形式。「優先度 重み ポート ターゲット」形式（例：\"10 5 5060 sip.example.com\"）：{{value}}",
+    "invalidSRVPriority": "無効な SRV 優先度/重み/ポート（0-65535）：{{value}}",
+    "invalidSRVTarget": "無効な SRV ターゲットホスト名：{{value}}",
     "missingParams": "必須パラメータが不足しています",
     "invalidDomainID": "無効な domain_id",
     "checkFailed": "ルール検査に失敗しました",

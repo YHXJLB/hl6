@@ -78,12 +78,24 @@ func (s *BaiduCloudDNSService) CreateRecord(ctx context.Context, zoneID, recordT
 		return existingID, nil
 	}
 
+	// 百度云 DNS 的 MX 记录 Value 只接受邮件服务器主机名，优先级通过独立的 Priority 字段下发；
+	// 把 HL6 内部 "优先级 主机名" 形式的 content 拆开后再提交。
+	recordValue := strings.TrimSpace(content)
+	var recordPriority *int32
+	if strings.EqualFold(recordType, "MX") {
+		if pri, host := splitMXContent(content); host != "" {
+			recordValue = host
+			p := int32(pri)
+			recordPriority = &p
+		}
+	}
 	ttlVal := int32(ttl)
 	args := &dns.CreateRecordRequest{
-		Rr:    relName,
-		Type:  strings.ToUpper(strings.TrimSpace(recordType)),
-		Value: strings.TrimSpace(content),
-		Ttl:   &ttlVal,
+		Rr:       relName,
+		Type:     strings.ToUpper(strings.TrimSpace(recordType)),
+		Value:    recordValue,
+		Priority: recordPriority,
+		Ttl:      &ttlVal,
 	}
 	// CreateRecord does not return an ID; find the record after creation
 	if err := s.client.CreateRecord(zoneName, args, ""); err != nil {
@@ -112,12 +124,22 @@ func (s *BaiduCloudDNSService) UpdateRecord(ctx context.Context, zoneID, recordI
 		return err
 	}
 
+	recordValue := strings.TrimSpace(content)
+	var recordPriority *int32
+	if strings.EqualFold(recordType, "MX") {
+		if pri, host := splitMXContent(content); host != "" {
+			recordValue = host
+			p := int32(pri)
+			recordPriority = &p
+		}
+	}
 	ttlVal := int32(ttl)
 	args := &dns.UpdateRecordRequest{
-		Rr:    relName,
-		Type:  strings.ToUpper(strings.TrimSpace(recordType)),
-		Value: strings.TrimSpace(content),
-		Ttl:   &ttlVal,
+		Rr:       relName,
+		Type:     strings.ToUpper(strings.TrimSpace(recordType)),
+		Value:    recordValue,
+		Priority: recordPriority,
+		Ttl:      &ttlVal,
 	}
 	if err := s.client.UpdateRecord(zoneName, recordID, args, ""); err != nil {
 		if isBaiduDNSNotFound(err) {
@@ -192,9 +214,20 @@ func (s *BaiduCloudDNSService) FindRecord(ctx context.Context, zoneID, recordTyp
 			if !strings.EqualFold(strings.ToUpper(r.Type), rtype) {
 				continue
 			}
-			if strings.EqualFold(strings.TrimSpace(r.Value), content) {
-				return r.Id, nil
+			itemValue := strings.TrimSpace(r.Value)
+			if strings.EqualFold(rtype, "MX") {
+				// 百度云只存储主机名，用 content 拆出的主机名进行比对
+				_, host := splitMXContent(content)
+				if host == "" {
+					host = content
+				}
+				if !strings.EqualFold(itemValue, host) {
+					continue
+				}
+			} else if !strings.EqualFold(itemValue, content) {
+				continue
 			}
+			return r.Id, nil
 		}
 		if !resp.IsTruncated {
 			break

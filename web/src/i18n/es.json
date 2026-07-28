@@ -214,7 +214,13 @@
     "invalidIPv6": "Ingrese una dirección IPv6 válida",
     "invalidHostname": "Ingrese un nombre de host válido",
     "typeNS": "NS (Servidor de nombres)",
-    "typeMX": "MX (Intercambio de correo)"
+    "typeMX": "MX (Intercambio de correo)",
+    "typeSRV": "SRV (Registro de servicio)",
+    "invalidMXFormat": "Formato de registro MX no válido, se espera «prioridad host» (p. ej. \"10 mail.example.com\")",
+    "invalidMXPriority": "Prioridad MX no válida (debe ser 0-65535)",
+    "invalidSRVFormat": "Formato de registro SRV no válido, se espera «prioridad peso puerto destino» (p. ej. \"10 5 5060 sip.example.com\")",
+    "invalidSRVPriority": "Prioridad/peso/puerto SRV no válido (debe ser 0-65535)",
+    "invalidSRVTarget": "Nombre de host de destino SRV no válido"
   },
   "recordTable": {
     "type": "Tipo",
@@ -780,6 +786,9 @@
     "invalidMXFormat": "Formato de registro MX no válido, se espera “prioridad host” (p. ej. \"10 mail.example.com\"): {{value}}",
     "invalidMXPriority": "Prioridad MX no válida (debe ser 0-65535): {{value}}",
     "invalidMXHost": "Nombre de host MX no válido: {{value}}",
+    "invalidSRVFormat": "Formato de registro SRV no válido, se espera «prioridad peso puerto destino» (p. ej. \"10 5 5060 sip.example.com\"): {{value}}",
+    "invalidSRVPriority": "Prioridad/peso/puerto SRV no válido (debe ser 0-65535): {{value}}",
+    "invalidSRVTarget": "Nombre de host de destino SRV no válido: {{value}}",
     "missingParams": "Faltan parámetros obligatorios",
     "invalidDomainID": "domain_id no válido",
     "checkFailed": "Fallo en la comprobación de reglas",

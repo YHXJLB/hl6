@@ -76,6 +76,19 @@ func (s *CloudflareService) buildNewBody(recordType, name, content string, ttl i
 			Priority: cloudflare.F(float64(mxPriority)),
 			TTL:      cloudflare.F(dns.TTL(ttl)),
 		}
+	case "SRV":
+		pri, weight, port, target := splitSRVContent(content)
+		return dns.SRVRecordParam{
+			Name: cloudflare.F(name),
+			Type: cloudflare.F(dns.SRVRecordTypeSRV),
+			Data: cloudflare.F(dns.SRVRecordDataParam{
+				Priority: cloudflare.F(float64(pri)),
+				Weight:   cloudflare.F(float64(weight)),
+				Port:     cloudflare.F(float64(port)),
+				Target:   cloudflare.F(target),
+			}),
+			TTL: cloudflare.F(dns.TTL(ttl)),
+		}
 	default: // A
 		return dns.ARecordParam{
 			Name:    cloudflare.F(name),
@@ -128,6 +141,19 @@ func (s *CloudflareService) buildUpdateBody(recordType, name, content string, tt
 			Priority: cloudflare.F(float64(mxPriority)),
 			TTL:      cloudflare.F(dns.TTL(ttl)),
 		}
+	case "SRV":
+		pri, weight, port, target := splitSRVContent(content)
+		return dns.SRVRecordParam{
+			Name: cloudflare.F(name),
+			Type: cloudflare.F(dns.SRVRecordTypeSRV),
+			Data: cloudflare.F(dns.SRVRecordDataParam{
+				Priority: cloudflare.F(float64(pri)),
+				Weight:   cloudflare.F(float64(weight)),
+				Port:     cloudflare.F(float64(port)),
+				Target:   cloudflare.F(target),
+			}),
+			TTL: cloudflare.F(dns.TTL(ttl)),
+		}
 	default: // A
 		return dns.ARecordParam{
 			Name:    cloudflare.F(name),
@@ -152,6 +178,36 @@ func splitMXContent(content string) (int, string) {
 		return pri, host
 	}
 	return 0, host
+}
+
+// splitSRVContent 将 "10 5 5060 sip.example.com" 拆分为优先级、权重、端口与目标主机名。
+// 与 pkg/validator 的 SRV 校验逻辑保持一致；校验已在调用前通过，此处仅做兜底解析。
+func splitSRVContent(content string) (int, int, int, string) {
+	parts := strings.Fields(strings.TrimSpace(content))
+	if len(parts) != 4 {
+		return 0, 0, 0, strings.TrimSpace(content)
+	}
+	priority, _ := strconv.Atoi(parts[0])
+	weight, _ := strconv.Atoi(parts[1])
+	port, _ := strconv.Atoi(parts[2])
+	return priority, weight, port, parts[3]
+}
+
+// srvContentMatch 比较两个 SRV RDATA 字符串是否等价：
+// 优先级/权重/端口相等，且目标主机忽略大小写与尾点（Cloudflare 可能规范化 FQDN）。
+// 若 got 为空（上游未回填 content），返回 false 以避免误判命中。
+func srvContentMatch(want, got string) bool {
+	if strings.TrimSpace(got) == "" {
+		return false
+	}
+	wp, ww, wport, wt := splitSRVContent(want)
+	gp, gw, gport, gt := splitSRVContent(got)
+	if wp != gp || ww != gw || wport != gport {
+		return false
+	}
+	wtNorm := strings.TrimSuffix(strings.TrimSpace(strings.ToLower(wt)), ".")
+	gtNorm := strings.TrimSuffix(strings.TrimSpace(strings.ToLower(gt)), ".")
+	return wtNorm == gtNorm
 }
 
 func (s *CloudflareService) CreateRecord(ctx context.Context, zoneID, recordType, name, content string, ttl int, proxied bool) (string, error) {
@@ -268,6 +324,14 @@ func (s *CloudflareService) FindRecord(ctx context.Context, zoneID, recordType, 
 			// Cloudflare 存储的 MX content 仅为邮件服务器主机名，而 HL6 内部以
 			// "优先级 主机名" 形式保存，这里用拆出的主机名进行比对，避免幂等查重失败。
 			if _, host := splitMXContent(content); rec.Content == host {
+				return rec.ID, nil
+			}
+			continue
+		}
+		if recordType == "SRV" {
+			// Cloudflare 返回的 SRV content 为完整 RDATA 整串 "优先级 权重 端口 目标"，
+			// 这里用拆出的 4 段进行比对（目标主机忽略尾点），避免幂等查重失败。
+			if srvContentMatch(content, rec.Content) {
 				return rec.ID, nil
 			}
 			continue

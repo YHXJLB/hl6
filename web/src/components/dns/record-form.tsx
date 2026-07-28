@@ -56,6 +56,17 @@ function validateRecordContent(type: string, content: string): string {
       if (!mxHost.test(host)) return "recordForm.invalidHostname";
       return "";
     }
+    case "SRV": {
+      const srvParts = content.trim().split(/\s+/);
+      if (srvParts.length !== 4) return "recordForm.invalidSRVFormat";
+      const [priority, weight, port, target] = srvParts;
+      if (!/^\d{1,5}$/.test(priority) || parseInt(priority, 10) > 65535) return "recordForm.invalidSRVPriority";
+      if (!/^\d{1,5}$/.test(weight) || parseInt(weight, 10) > 65535) return "recordForm.invalidSRVPriority";
+      if (!/^\d{1,5}$/.test(port) || parseInt(port, 10) > 65535) return "recordForm.invalidSRVPriority";
+      const srvHost = /^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\.?$/;
+      if (!srvHost.test(target)) return "recordForm.invalidSRVTarget";
+      return "";
+    }
     default:
       return "";
   }
@@ -84,7 +95,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
     if (!content.trim()) return;
     const data = {
       content: content.trim(),
-      proxied: type === "TXT" || type === "NS" || type === "MX" ? false : proxied,
+      proxied: type === "TXT" || type === "NS" || type === "MX" || type === "SRV" ? false : proxied,
     };
 
     if (isEdit && record) {
@@ -136,6 +147,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
                   <SelectItem value="TXT">{t("recordForm.typeTXT")}</SelectItem>
                   <SelectItem value="NS">{t("recordForm.typeNS")}</SelectItem>
                   <SelectItem value="MX">{t("recordForm.typeMX")}</SelectItem>
+                  <SelectItem value="SRV">{t("recordForm.typeSRV")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,7 +155,7 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
           <div className="space-y-2">
             <Label>{t("recordForm.content")}</Label>
             <Input
-              placeholder={type === "A" ? "1.2.3.4" : type === "AAAA" ? "2001:db8::1" : type === "TXT" ? "v=spf1 include:example.com ~all" : type === "NS" ? "ns1.example.com" : type === "MX" ? "10 mail.example.com" : "example.com"}
+              placeholder={type === "A" ? "1.2.3.4" : type === "AAAA" ? "2001:db8::1" : type === "TXT" ? "v=spf1 include:example.com ~all" : type === "NS" ? "ns1.example.com" : type === "MX" ? "10 mail.example.com" : type === "SRV" ? "10 5 5060 sip.example.com" : "example.com"}
               value={content}
               onChange={(e) => {
                 setContent(e.target.value);
@@ -161,9 +173,9 @@ export function RecordForm({ subdomainId, record, open, onOpenChange }: RecordFo
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={type === "TXT" || type === "NS" || type === "MX" ? false : proxied}
+                  checked={type === "TXT" || type === "NS" || type === "MX" || type === "SRV" ? false : proxied}
                   onChange={(e) => setProxied(e.target.checked)}
-                  disabled={type === "TXT" || type === "NS" || type === "MX"}
+                  disabled={type === "TXT" || type === "NS" || type === "MX" || type === "SRV"}
                   className="rounded"
                 />
                 <span className="text-sm">{proxied ? t("common.on") : t("common.off")}</span>

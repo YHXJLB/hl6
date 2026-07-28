@@ -252,6 +252,12 @@ func (s *GoogleCloudDNSService) FindRecord(ctx context.Context, zoneID, recordTy
 
 	for _, v := range rrset.Rrdatas {
 		trimV := strings.TrimSpace(strings.Trim(v, "\""))
+		if strings.EqualFold(recordType, "SRV") {
+			if srvContentMatch(content, trimV) {
+				return fmt.Sprintf("%s:%s:%s:%s", zoneID, fqdn, rtype, content), nil
+			}
+			continue
+		}
 		if strings.EqualFold(trimV, content) {
 			return fmt.Sprintf("%s:%s:%s:%s", zoneID, fqdn, rtype, content), nil
 		}

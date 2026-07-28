@@ -214,7 +214,13 @@
     "invalidIPv6": "Please enter a valid IPv6 address",
     "invalidHostname": "Please enter a valid hostname",
     "typeNS": "NS (Name Server)",
-    "typeMX": "MX (Mail Exchange)"
+    "typeMX": "MX (Mail Exchange)",
+    "typeSRV": "SRV (Service Record)",
+    "invalidMXFormat": "Invalid MX record format, expected “priority hostname” (e.g. \"10 mail.example.com\")",
+    "invalidMXPriority": "Invalid MX priority (must be 0-65535)",
+    "invalidSRVFormat": "Invalid SRV record format, expected “priority weight port target” (e.g. \"10 5 5060 sip.example.com\")",
+    "invalidSRVPriority": "Invalid SRV priority/weight/port (must be 0-65535)",
+    "invalidSRVTarget": "Invalid SRV target hostname"
   },
   "recordTable": {
     "type": "Type",
@@ -780,6 +786,9 @@
     "invalidMXFormat": "Invalid MX record format, expected “priority hostname” (e.g. \"10 mail.example.com\"): {{value}}",
     "invalidMXPriority": "Invalid MX priority (must be 0-65535): {{value}}",
     "invalidMXHost": "Invalid MX hostname: {{value}}",
+    "invalidSRVFormat": "Invalid SRV record format, expected “priority weight port target” (e.g. \"10 5 5060 sip.example.com\"): {{value}}",
+    "invalidSRVPriority": "Invalid SRV priority/weight/port (must be 0-65535): {{value}}",
+    "invalidSRVTarget": "Invalid SRV target hostname: {{value}}",
     "missingParams": "Missing required parameters",
     "invalidDomainID": "Invalid domain_id",
     "checkFailed": "Rule check failed",

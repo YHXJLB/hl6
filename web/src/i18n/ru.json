@@ -214,7 +214,13 @@
     "invalidIPv6": "Введите корректный IPv6-адрес",
     "invalidHostname": "Введите корректное имя хоста",
     "typeNS": "NS (Сервер имён)",
-    "typeMX": "MX (Почтовый обмен)"
+    "typeMX": "MX (Почтовый обмен)",
+    "typeSRV": "SRV (Сервисная запись)",
+    "invalidMXFormat": "Неверный формат MX, ожидается «приоритет хост» (напр. \"10 mail.example.com\")",
+    "invalidMXPriority": "Неверный приоритет MX (0-65535)",
+    "invalidSRVFormat": "Неверный формат SRV, ожидается «приоритет вес порт цель» (напр. \"10 5 5060 sip.example.com\")",
+    "invalidSRVPriority": "Неверные приоритет/вес/порт SRV (0-65535)",
+    "invalidSRVTarget": "Неверное имя хоста назначения SRV"
   },
   "recordTable": {
     "type": "Тип",
@@ -780,6 +786,9 @@
     "invalidMXFormat": "Неверный формат MX, ожидается «приоритет хост» (напр. \"10 mail.example.com\"): {{value}}",
     "invalidMXPriority": "Неверный приоритет MX (0-65535): {{value}}",
     "invalidMXHost": "Неверное имя хоста MX: {{value}}",
+    "invalidSRVFormat": "Неверный формат SRV, ожидается «приоритет вес порт цель» (напр. \"10 5 5060 sip.example.com\"): {{value}}",
+    "invalidSRVPriority": "Неверные приоритет/вес/порт SRV (0-65535): {{value}}",
+    "invalidSRVTarget": "Неверное имя хоста назначения SRV: {{value}}",
     "missingParams": "Отсутствуют обязательные параметры",
     "invalidDomainID": "Неверный domain_id",
     "checkFailed": "Ошибка проверки правил",

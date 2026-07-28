@@ -127,7 +127,7 @@ func (h *DNSHandler) CreateRecord(c *gin.Context) {
 		}
 	}
 
-	if body.Type == "TXT" || body.Type == "NS" || body.Type == "MX" {
+	if body.Type == "TXT" || body.Type == "NS" || body.Type == "MX" || body.Type == "SRV" {
 		body.Proxied = false
 	}
 	if sub.Domain.Provider != model.DNSProviderCloudflare {

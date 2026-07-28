@@ -232,6 +232,12 @@ func (s *Route53Service) FindRecord(ctx context.Context, zoneID, recordType, nam
 		}
 		for _, rr := range rrset.ResourceRecords {
 			val := strings.Trim(aws.ToString(rr.Value), "\"")
+			if strings.EqualFold(recordType, "SRV") {
+				if srvContentMatch(content, val) {
+					return fmt.Sprintf("%s:%s", fqdn, strings.ToUpper(recordType)), nil
+				}
+				continue
+			}
 			if strings.EqualFold(strings.TrimSpace(val), content) {
 				return fmt.Sprintf("%s:%s", fqdn, strings.ToUpper(recordType)), nil
 			}

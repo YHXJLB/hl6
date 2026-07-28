@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-export const AUDIT_RECORD_TYPES = ["A", "AAAA", "CNAME", "TXT", "NS", "MX"] as const;
+export const AUDIT_RECORD_TYPES = ["A", "AAAA", "CNAME", "TXT", "NS", "MX", "SRV"] as const;
 export type AuditRecordType = (typeof AUDIT_RECORD_TYPES)[number];
 
 export function RecordTypeFilter({

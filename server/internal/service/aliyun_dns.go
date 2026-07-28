@@ -115,11 +115,23 @@ func (s *AliDNSService) CreateRecord(ctx context.Context, zoneID, recordType, na
 		return "", fmt.Errorf("aliyun dns pre-check record: %w", findErr)
 	}
 
+	// 阿里云 MX 记录的 Value 仅接受邮件服务器主机名，优先级需通过独立的 Priority 字段下发；
+	// 这里把 HL6 内部 "优先级 主机名" 形式的 content 拆开后再提交。
+	recordValue := content
+	var recordPriority *int64
+	if recordType == "MX" {
+		if pri, host := splitMXContent(content); host != "" {
+			recordValue = host
+			p := int64(pri)
+			recordPriority = &p
+		}
+	}
 	req := &alidns.AddDomainRecordRequest{
 		DomainName: &zoneName,
 		RR:         &rr,
 		Type:       &recordType,
-		Value:      &content,
+		Value:      &recordValue,
+		Priority:   recordPriority,
 		Line:       strPtr("default"),
 	}
 	_ = ttl
@@ -156,11 +168,21 @@ func (s *AliDNSService) UpdateRecord(ctx context.Context, zoneID, recordID, reco
 	content = strings.TrimSpace(content)
 	recordID = strings.TrimSpace(recordID)
 
+	recordValue := content
+	var recordPriority *int64
+	if recordType == "MX" {
+		if pri, host := splitMXContent(content); host != "" {
+			recordValue = host
+			p := int64(pri)
+			recordPriority = &p
+		}
+	}
 	req := &alidns.UpdateDomainRecordRequest{
 		RecordId: &recordID,
 		RR:       &rr,
 		Type:     &recordType,
-		Value:    &content,
+		Value:    &recordValue,
+		Priority: recordPriority,
 		Line:     strPtr("default"),
 	}
 	_ = ttl
@@ -241,7 +263,17 @@ func (s *AliDNSService) FindRecord(ctx context.Context, zoneID, recordType, name
 			if !strings.EqualFold(strings.TrimSpace(ptrString(item.Type)), recordType) {
 				continue
 			}
-			if !strings.EqualFold(strings.TrimSpace(ptrString(item.Value)), content) {
+			itemValue := strings.TrimSpace(ptrString(item.Value))
+			if recordType == "MX" {
+				// 阿里云只存储主机名，用 content 拆出的主机名进行比对
+				_, host := splitMXContent(content)
+				if host == "" {
+					host = content
+				}
+				if !strings.EqualFold(itemValue, host) {
+					continue
+				}
+			} else if !strings.EqualFold(itemValue, content) {
 				continue
 			}
 			return strings.TrimSpace(*item.RecordId), nil

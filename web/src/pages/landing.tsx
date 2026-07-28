@@ -223,7 +223,7 @@ export default function LandingPage() {
             <div className="lg:col-span-2 rounded-xl border p-7 bg-brand/5 border-brand/20 flex items-center justify-between gap-6">
               <div>
                 <p className="text-sm font-medium text-brand mb-1">{t("landing.statLabel")}</p>
-                <p className="text-3xl font-bold text-foreground">A · AAAA · CNAME · TXT</p>
+                <p className="text-3xl font-bold text-foreground">A · AAAA · CNAME · TXT · MX · SRV</p>
                 <p className="mt-1.5 text-sm text-muted-foreground">{t("landing.statDesc")}</p>
               </div>
             </div>
