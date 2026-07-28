@@ -30,12 +30,13 @@ type cfFailureRecord struct {
 }
 
 type DomainHandler struct {
-	repo *repository.Repository
-	ops  *service.DNSOperationService
+	repo        *repository.Repository
+	ops         *service.DNSOperationService
+	ruleEngine  *service.ClaimRuleEngine
 }
 
-func NewDomainHandler(repo *repository.Repository, ops *service.DNSOperationService) *DomainHandler {
-	return &DomainHandler{repo: repo, ops: ops}
+func NewDomainHandler(repo *repository.Repository, ops *service.DNSOperationService, ruleEngine *service.ClaimRuleEngine) *DomainHandler {
+	return &DomainHandler{repo: repo, ops: ops, ruleEngine: ruleEngine}
 }
 
 func (h *DomainHandler) List(c *gin.Context) {
@@ -77,6 +78,8 @@ func (h *DomainHandler) PublicList(c *gin.Context) {
 }
 
 // PublicCheckSubdomain checks whether a subdomain name is already taken under a given domain.
+// It combines DB existence check with claim rule engine validation — any failure returns available=false
+// with no detail (the UI shows a generic "已被占用" message).
 func (h *DomainHandler) PublicCheckSubdomain(c *gin.Context) {
 	name := strings.TrimSpace(c.Query("name"))
 	domainIDStr := c.Query("domain_id")
@@ -89,13 +92,36 @@ func (h *DomainHandler) PublicCheckSubdomain(c *gin.Context) {
 		response.BadRequest(c, "error.invalidRequestBody")
 		return
 	}
+
+	// 1. DB existence check
 	sub, err := h.repo.FindSubdomainByName(uint(domainID), name)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		response.InternalError(c, "error.databaseError")
 		return
 	}
-	available := sub == nil || errors.Is(err, gorm.ErrRecordNotFound)
-	response.OK(c, gin.H{"available": available})
+	if sub != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		response.OK(c, gin.H{"available": false})
+		return
+	}
+
+	// 2. Claim rule engine check — reject if any enabled rule matches
+	if h.ruleEngine != nil {
+		domain, domErr := h.repo.FindDomain(uint(domainID))
+		if domErr == nil && domain != nil {
+			matchResult, ruleErr := h.ruleEngine.CheckSubdomainName(c.Request.Context(), uint(domainID), name, domain.Name)
+			if ruleErr != nil {
+				// Rule engine error treated as "not available" — fail closed
+				response.OK(c, gin.H{"available": false})
+				return
+			}
+			if matchResult != nil {
+				response.OK(c, gin.H{"available": false})
+				return
+			}
+		}
+	}
+
+	response.OK(c, gin.H{"available": true})
 }
 
 type groupAccessInput struct {

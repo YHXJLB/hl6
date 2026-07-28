@@ -33,7 +33,7 @@ func NewHandlers(cfg *config.Config, repo *repository.Repository, dnsOps *servic
 	return &Handlers{
 		Auth:              handler.NewAuthHandler(repo),
 		OIDC:              handler.NewOIDCHandler(repo, cfg),
-		Domain:            handler.NewDomainHandler(repo, dnsOps),
+		Domain:            handler.NewDomainHandler(repo, dnsOps, claimRuleEngine),
 		Subdomain:         handler.NewSubdomainHandler(repo, sseBroker, dnsOps, audit.enqueue, audit.notif, audit.subSvc, audit.auditLog, claimRuleEngine),
 		DNS:               handler.NewDNSHandler(repo, sseBroker, dnsOps, audit.enqueue),
 		Credit:            handler.NewCreditHandler(repo),
